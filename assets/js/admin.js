@@ -40,6 +40,16 @@ jQuery(document).ready(function($) {
         }
     });
 
+    // When selecting related reseller product, auto-fill the Start Date field with reseller's purchase date
+    $('select[name="reseller_product_id"]').on('change', function() {
+        var selectedOpt = $(this).find(':selected');
+        var purchaseDate = selectedOpt.data('purchase-date');
+
+        if (purchaseDate) {
+            $('input[name="start_date"]').val(purchaseDate).trigger('change');
+        }
+    });
+
     // Calculate and auto-fill Expiration Date based on Purchase Date + Duration
     function calculateExpiryDate() {
         var purchaseDateStr = $('input[name="purchase_date"]').val();
