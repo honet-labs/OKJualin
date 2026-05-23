@@ -395,7 +395,7 @@ class WRPM_Admin {
         $price_row = $wpdb->get_row($wpdb->prepare("SELECT name, duration_days FROM " . WRPM_DB::get_table('product_prices') . " WHERE id = %s", $price_id), ARRAY_A);
 
         $product_name = $price_row ? $price_row['name'] : '';
-        $duration_days = $price_row ? (int)$price_row['duration_days'] : 0;
+        $duration_days = isset($_POST['duration_days']) ? (int)$_POST['duration_days'] : ($price_row ? (int)$price_row['duration_days'] : 0);
 
         $data = [
             'id' => $id,

@@ -23,14 +23,39 @@ jQuery(document).ready(function($) {
     }
 
     // Dynamic field calculations (e.g. autofilling dates, prices, etc)
-    // When selecting master product reference, auto-fill the Seller dropdown
+    // When selecting master product reference, auto-fill the Seller dropdown and Duration field
     $('select[name="price_id"]').on('change', function() {
-        var seller_id = $(this).find(':selected').data('seller-id');
+        var selectedOpt = $(this).find(':selected');
+        var seller_id = selectedOpt.data('seller-id');
+        var duration = selectedOpt.data('duration');
+
         if (seller_id) {
             $('select[name="seller_id"]').val(seller_id).trigger('change');
         } else {
             $('select[name="seller_id"]').val('').trigger('change');
         }
+
+        if (duration !== undefined && duration !== null && duration !== '') {
+            $('input[name="duration_days"]').val(duration).trigger('change');
+        }
+    });
+
+    // Calculate and auto-fill Expiration Date based on Purchase Date + Duration
+    function calculateExpiryDate() {
+        var purchaseDateStr = $('input[name="purchase_date"]').val();
+        var duration = parseInt($('input[name="duration_days"]').val());
+        if (purchaseDateStr && !isNaN(duration) && duration >= 0) {
+            var date = new Date(purchaseDateStr);
+            date.setDate(date.getDate() + duration);
+            var y = date.getFullYear();
+            var m = String(date.getMonth() + 1).padStart(2, '0');
+            var d = String(date.getDate()).padStart(2, '0');
+            $('input[name="expires_at"]').val(y + '-' + m + '-' + d);
+        }
+    }
+
+    $('input[name="purchase_date"], input[name="duration_days"]').on('input change', function() {
+        calculateExpiryDate();
     });
 
     // Live table search filtering
@@ -103,6 +128,19 @@ jQuery(document).ready(function($) {
         $('#wrpmCustomerModal').css('display', 'none');
     });
 
+    // Modal display logic for payment attachment details
+    $('.wrpm-view-payment-proof').on('click', function(e) {
+        e.preventDefault();
+        var url = $(this).data('url');
+        $('#wrpmAttachmentImg').attr('src', url);
+        $('#wrpmAttachmentDownloadBtn').attr('href', url);
+        $('#wrpmAttachmentModal').css('display', 'flex');
+    });
+
+    $('.wrpm-attachment-modal-close, .wrpm-attachment-modal-close-btn').on('click', function() {
+        $('#wrpmAttachmentModal').css('display', 'none');
+    });
+
     // Close modals when clicking outside of them
     $(window).on('click', function(e) {
         if ($(e.target).is('#wrpmDetailModal')) {
@@ -113,6 +151,9 @@ jQuery(document).ready(function($) {
         }
         if ($(e.target).is('#wrpmCustomerModal')) {
             $('#wrpmCustomerModal').css('display', 'none');
+        }
+        if ($(e.target).is('#wrpmAttachmentModal')) {
+            $('#wrpmAttachmentModal').css('display', 'none');
         }
     });
 });
