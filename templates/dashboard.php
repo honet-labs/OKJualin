@@ -5,11 +5,6 @@
             <h1>WP Reseller Manage Dashboard</h1>
             <p class="wrpm-subtitle">Ikhtisar performa bisnis dan pelacakan reminder produk aktif.</p>
         </div>
-        <div class="wrpm-actions">
-            <a class="wrpm-btn wrpm-btn-primary" href="<?php echo admin_url('admin.php?page=wrpm-active-products&action=add'); ?>">
-                <span class="dashicons dashicons-plus"></span> Produk Aktif Baru
-            </a>
-        </div>
     </div>
 
     <!-- KPIs Widgets Grid -->
