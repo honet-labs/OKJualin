@@ -78,7 +78,7 @@ class WRPM_Reseller_Manager {
         global $wpdb;
         $today = wp_date('Y-m-d');
         $reminders = $wpdb->get_results($wpdb->prepare(
-            "SELECT r.*, a.product_label, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp, a.expires_at, a.price
+            "SELECT r.*, a.product_label, a.start_date, a.duration_days, a.notes, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp, a.expires_at, a.price
              FROM " . WRPM_DB::get_table('active_reminders') . " r
              INNER JOIN " . WRPM_DB::get_table('active_products') . " a ON r.active_product_id = a.id
              INNER JOIN " . WRPM_DB::get_table('customers') . " c ON r.customer_id = c.id
@@ -94,10 +94,22 @@ class WRPM_Reseller_Manager {
         foreach ($reminders as $r) {
             $vars = [
                 'customer_name' => $r['customer_name'],
+                'customer_email' => $r['customer_email'],
+                'customer_phone' => $r['customer_phone'],
+                'customer_telegram' => $r['customer_telegram'],
+                'customer_whatsapp' => $r['customer_whatsapp'],
                 'product_label' => $r['product_label'],
-                'expires_at' => $r['expires_at'],
+                'expires_at' => date_i18n(get_option('date_format'), strtotime($r['expires_at'])),
                 'price' => 'Rp ' . number_format_i18n((float)$r['price'], 0),
                 'remaining_days' => $r['offset_days'],
+                'start_date' => date_i18n(get_option('date_format'), strtotime($r['start_date'])),
+                'duration_days' => $r['duration_days'],
+                'notes' => $r['notes'] ?: '-',
+                'invoice_url' => admin_url('admin-post.php?action=wrpm_invoice_pdf&id=' . $r['active_product_id']),
+                'company_name' => !empty($settings['pdf_company_name']) ? $settings['pdf_company_name'] : get_bloginfo('name'),
+                'company_address' => !empty($settings['pdf_company_address']) ? $settings['pdf_company_address'] : '',
+                'company_phone' => !empty($settings['pdf_company_phone']) ? $settings['pdf_company_phone'] : '',
+                'payment_details' => !empty($settings['pdf_payment_details']) ? $settings['pdf_payment_details'] : '',
             ];
 
             $sent_channels = [];
