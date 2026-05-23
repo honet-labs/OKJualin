@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (!defined('ABSPATH')) { exit; }
 
 class OKJ_Admin {
@@ -302,7 +302,48 @@ class OKJ_Admin {
 
     public function view_reminders() {
         global $wpdb;
-        $rows = $wpdb->get_results("SELECT r.*, a.product_label, c.name as customer_name FROM " . OKJ_DB::get_table('active_reminders') . " r INNER JOIN " . OKJ_DB::get_table('active_products') . " a ON r.active_product_id = a.id INNER JOIN " . OKJ_DB::get_table('customers') . " c ON r.customer_id = c.id ORDER BY r.reminder_date ASC", ARRAY_A);
+        $today = wp_date('Y-m-d');
+
+        $all_rows = $wpdb->get_results("SELECT r.*, a.product_label, c.name as customer_name FROM " . OKJ_DB::get_table('active_reminders') . " r INNER JOIN " . OKJ_DB::get_table('active_products') . " a ON r.active_product_id = a.id INNER JOIN " . OKJ_DB::get_table('customers') . " c ON r.customer_id = c.id ORDER BY r.reminder_date ASC", ARRAY_A);
+
+        // For each active_product_id, find the smallest offset_days among
+        // pending reminders whose reminder_date has already passed (or is today).
+        $min_past_pending = [];
+        foreach ($all_rows as $r) {
+            if ($r['status'] === 'pending' && $r['reminder_date'] <= $today) {
+                $apid = $r['active_product_id'];
+                $offset = (int) $r['offset_days'];
+                if (!isset($min_past_pending[$apid]) || $offset < $min_past_pending[$apid]) {
+                    $min_past_pending[$apid] = $offset;
+                }
+            }
+        }
+
+        // Filter: hide past-pending rows that are NOT the closest milestone
+        $rows = [];
+        foreach ($all_rows as $r) {
+            $apid = $r['active_product_id'];
+            $offset = (int) $r['offset_days'];
+
+            // Already sent → always show
+            if ($r['status'] !== 'pending') {
+                $rows[] = $r;
+                continue;
+            }
+
+            // Future pending (not yet due) → always show
+            if ($r['reminder_date'] > $today) {
+                $rows[] = $r;
+                continue;
+            }
+
+            // Past pending → only show the closest one (smallest offset)
+            if (isset($min_past_pending[$apid]) && $offset === $min_past_pending[$apid]) {
+                $rows[] = $r;
+            }
+            // else: superseded past milestone → hide
+        }
+
         $this->render_template('reminders', ['rows' => $rows]);
     }
 
