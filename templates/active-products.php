@@ -126,6 +126,7 @@
                                 <th>ID</th>
                                 <th>Produk Terjual</th>
                                 <th>Customer</th>
+                                <th>Catatan</th>
                                 <th>Tanggal Mulai</th>
                                 <th>Tanggal Expired</th>
                                 <th>Status Keaktifan</th>
@@ -156,6 +157,19 @@
                                              <span class="wrpm-text-muted">-</span>
                                          <?php endif; ?>
                                          <div style="margin-top: 4px;"><small class="wrpm-text-muted"><?php echo esc_html($r['customer_contact']); ?></small></div>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($r['notes'])): ?>
+                                            <a href="#" class="wrpm-view-active-notes" 
+                                               data-name="<?php echo esc_attr($r['product_label']); ?>" 
+                                               data-notes="<?php echo esc_attr(wp_strip_all_tags($r['notes'])); ?>" 
+                                               style="text-decoration: none; color: #4338ca; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #e0e7ff; border-radius: 6px; border: 1px solid #c7d2fe; transition: all 0.2s;"
+                                               title="Lihat Catatan">
+                                                <span class="dashicons dashicons-visibility" style="font-size: 18px; width: 18px; height: 18px;"></span>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="wrpm-text-muted">-</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td><?php echo esc_html($r['start_date']); ?></td>
                                     <td><span class="dashicons dashicons-calendar-alt wrpm-text-muted"></span> <?php echo esc_html($r['expires_at']); ?></td>
@@ -327,4 +341,24 @@
     100% { transform: rotate(360deg); }
 }
 </style>
+
+<!-- Modal Active Product Notes -->
+<div id="wrpmActiveNotesModal" class="wrpm-modal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="wrpm-modal-content" style="background-color: #ffffff; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; animation: wrpmFadeIn 0.25s ease-out; margin: auto;">
+        <div class="wrpm-modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+                <span class="dashicons dashicons-testimonial" style="margin-right: 8px; color: #4f46e5;"></span>
+                Catatan Layanan
+            </h3>
+            <span class="wrpm-active-notes-close" style="color: #94a3b8; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        <div class="wrpm-modal-body" style="padding: 20px 24px;">
+            <h4 id="wrpmActiveNotesTitle" style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 600; color: #334155;"></h4>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; font-size: 14px; color: #475569; line-height: 1.6; min-height: 100px; white-space: pre-wrap;" id="wrpmActiveNotesContent"></div>
+        </div>
+        <div class="wrpm-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+            <button class="wrpm-btn wrpm-btn-secondary wrpm-active-notes-close-btn" style="cursor: pointer; padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 500;">Tutup</button>
+        </div>
+    </div>
+</div>
 

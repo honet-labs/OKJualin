@@ -171,6 +171,9 @@ jQuery(document).ready(function($) {
         if ($(e.target).is('#wrpmQuickAddCustomerModal')) {
             $('#wrpmQuickAddCustomerModal').css('display', 'none');
         }
+        if ($(e.target).is('#wrpmActiveNotesModal')) {
+            $('#wrpmActiveNotesModal').css('display', 'none');
+        }
     });
 
     // ==========================================
@@ -303,5 +306,20 @@ jQuery(document).ready(function($) {
             $spinner.hide();
             alert('Terjadi kesalahan jaringan.');
         });
+    });
+
+    // Active Product Notes Modal triggers
+    $('.wrpm-view-active-notes').on('click', function(e) {
+        e.preventDefault();
+        var name = $(this).data('name');
+        var notes = $(this).data('notes') || 'Tidak ada catatan layanan.';
+        
+        $('#wrpmActiveNotesTitle').text(name);
+        $('#wrpmActiveNotesContent').text(notes);
+        $('#wrpmActiveNotesModal').css('display', 'flex');
+    });
+
+    $('.wrpm-active-notes-close, .wrpm-active-notes-close-btn').on('click', function() {
+        $('#wrpmActiveNotesModal').css('display', 'none');
     });
 });
