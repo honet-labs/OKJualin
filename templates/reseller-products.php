@@ -142,6 +142,7 @@
                     <table class="wrpm-table">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Produk</th>
                                 <th>Supplier / Reseller</th>
                                 <th>Tanggal Beli</th>
@@ -154,6 +155,7 @@
                         <tbody>
                             <?php foreach ($rows as $r): ?>
                                 <tr>
+                                    <td><code><?php echo esc_html(substr($r['id'], 0, 8)); ?></code></td>
                                     <td><strong><?php echo esc_html($r['product_name']); ?></strong></td>
                                     <td>
                                         <div><strong><?php echo esc_html($r['reseller_name'] ?: '-'); ?></strong></div>

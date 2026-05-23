@@ -83,6 +83,7 @@
                     <table class="wrpm-table">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Nama Seller</th>
                                 <th>Email</th>
                                 <th>Telepon</th>
@@ -94,6 +95,7 @@
                         <tbody>
                             <?php foreach ($rows as $r): ?>
                                 <tr>
+                                    <td><code><?php echo esc_html(substr($r['id'], 0, 8)); ?></code></td>
                                     <td><strong><?php echo esc_html($r['name']); ?></strong></td>
                                     <td><?php echo esc_html($r['email'] ?: '-'); ?></td>
                                     <td><?php echo esc_html($r['phone'] ?: '-'); ?></td>

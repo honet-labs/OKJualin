@@ -115,6 +115,7 @@
                     <table class="wrpm-table">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Produk Terjual</th>
                                 <th>Customer</th>
                                 <th>Tanggal Mulai</th>
@@ -128,6 +129,7 @@
                         <tbody>
                             <?php foreach ($rows as $r): ?>
                                 <tr>
+                                    <td><code><?php echo esc_html(substr($r['id'], 0, 8)); ?></code></td>
                                     <td><strong><?php echo esc_html($r['product_label']); ?></strong></td>
                                     <td>
                                         <div><strong><?php echo esc_html($r['customer_name']); ?></strong></div>
