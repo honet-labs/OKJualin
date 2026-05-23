@@ -26,9 +26,11 @@
                             <label class="wrpm-label">Pilih Produk Referensi <span class="wrpm-required">*</span></label>
                             <select name="price_id" class="wrpm-select wrpm-select2" style="width: 100%;" required>
                                 <option value="">-- Pilih Master Harga --</option>
-                                <?php foreach ($prices as $p): ?>
+                                <?php foreach ($prices as $p): 
+                                    $short_id = substr($p['id'], 0, 8);
+                                ?>
                                     <option value="<?php echo esc_attr($p['id']); ?>" <?php echo $row && $row['price_id'] === $p['id'] ? 'selected' : ''; ?>>
-                                        <?php echo esc_html($p['name']); ?>
+                                        <?php echo esc_html($short_id . ' - ' . $p['name'] . ' - ' . $p['duration_days'] . ' Hari'); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
