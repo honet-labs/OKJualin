@@ -120,6 +120,9 @@ class WRPM_Notifier {
         if (!$api_url) return ['ok' => false, 'error' => 'WAHA API URL is not configured'];
 
         $to = preg_replace('/[^0-9]/', '', $to);
+        if (strpos($to, '0') === 0) {
+            $to = '62' . substr($to, 1);
+        }
         if (!$to) return ['ok' => false, 'error' => 'Invalid target phone number'];
 
         if (strpos($to, '@') === false) {
