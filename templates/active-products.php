@@ -122,6 +122,7 @@
                                 <th>Tanggal Expired</th>
                                 <th>Status Keaktifan</th>
                                 <th>Status Bayar</th>
+                                <th>Bukti Bayar</th>
                                 <th>Invoice</th>
                                 <th>Aksi</th>
                             </tr>
@@ -162,6 +163,19 @@
                                             <span class="wrpm-badge wrpm-badge-success">Lunas</span>
                                         <?php else: ?>
                                             <span class="wrpm-badge wrpm-badge-warning">Pending</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($r['payment_attachments'])): ?>
+                                            <a href="#" class="wrpm-view-payment-proof" 
+                                               data-url="<?php echo esc_url($r['payment_attachments']); ?>"
+                                               style="text-decoration: none; color: #4f46e5; font-weight: 600; display: inline-flex; align-items: center; border-bottom: 1px dashed #4f46e5; padding-bottom: 2px;"
+                                               title="Lihat Bukti Pembayaran">
+                                                <span class="dashicons dashicons-image-filter" style="margin-right: 4px; font-size: 16px; width: 16px; height: 16px;"></span>
+                                                Lihat
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="wrpm-text-muted">-</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -229,15 +243,37 @@
     </div>
 </div>
 
+<!-- Modal Popup Bukti Pembayaran -->
+<div id="wrpmAttachmentModal" class="wrpm-modal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="wrpm-modal-content" style="background-color: #ffffff; border-radius: 12px; max-width: 600px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; animation: wrpmFadeIn 0.25s ease-out;">
+        <div class="wrpm-modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+                <span class="dashicons dashicons-image-filter" style="margin-right: 8px; color: #4f46e5; font-size: 20px; width: 20px; height: 20px;"></span>
+                Bukti Pembayaran / Lampiran
+            </h3>
+            <span class="wrpm-attachment-modal-close" style="color: #94a3b8; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.2s;">&times;</span>
+        </div>
+        <div class="wrpm-modal-body" style="padding: 24px; text-align: center; background: #f8fafc;">
+            <img id="wrpmAttachmentImg" src="" alt="Bukti Pembayaran" style="max-width: 100%; max-height: 450px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;" />
+        </div>
+        <div class="wrpm-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+            <a id="wrpmAttachmentDownloadBtn" href="" download class="wrpm-btn wrpm-btn-primary" style="margin-right: 8px; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 500; display: inline-flex; align-items: center;">
+                <span class="dashicons dashicons-download" style="margin-right: 6px; font-size: 16px; width: 16px; height: 16px;"></span> Unduh Gambar
+            </a>
+            <button class="wrpm-btn wrpm-btn-secondary wrpm-attachment-modal-close-btn" style="cursor: pointer; padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 500;">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <style>
 @keyframes wrpmFadeIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
-.wrpm-customer-modal-close:hover {
+.wrpm-customer-modal-close:hover, .wrpm-attachment-modal-close:hover {
     color: #475569 !important;
 }
-.wrpm-view-customer-detail:hover {
+.wrpm-view-customer-detail:hover, .wrpm-view-payment-proof:hover {
     color: #4338ca !important;
     border-bottom-color: #4338ca !important;
 }
