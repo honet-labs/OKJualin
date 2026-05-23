@@ -29,9 +29,11 @@
                                 <?php foreach ($resellers as $r): 
                                     $short_id = substr($r['id'], 0, 8);
                                     $seller_info = !empty($r['seller_name']) ? ' - ' . $r['seller_name'] : ' - Tanpa Seller';
+                                    $is_currently_selected = $row && $row['reseller_product_id'] === $r['id'];
+                                    $used_label = (!empty($r['is_used']) && $r['is_used'] > 0 && !$is_currently_selected) ? ' [Used]' : '';
                                 ?>
                                     <option value="<?php echo esc_attr($r['id']); ?>" <?php echo $row && $row['reseller_product_id'] === $r['id'] ? 'selected' : ''; ?> data-purchase-date="<?php echo esc_attr($r['purchase_date']); ?>">
-                                        <?php echo esc_html($short_id . ' - ' . $r['product_name'] . ' - ' . $r['duration_days'] . ' Hari' . $seller_info); ?>
+                                        <?php echo esc_html($short_id . ' - ' . $r['product_name'] . ' - ' . $r['duration_days'] . ' Hari' . $seller_info . $used_label); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

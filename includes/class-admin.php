@@ -272,7 +272,7 @@ class WRPM_Admin {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
             $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A) : null;
             $customers = $wpdb->get_results("SELECT id, name FROM " . WRPM_DB::get_table('customers') . " ORDER BY name ASC", ARRAY_A);
-            $resellers = $wpdb->get_results("SELECT r.id, r.product_name, r.duration_days, r.price, r.purchase_date, s.name as seller_name FROM " . WRPM_DB::get_table('reseller_products') . " r LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC", ARRAY_A);
+            $resellers = $wpdb->get_results("SELECT r.id, r.product_name, r.duration_days, r.price, r.purchase_date, s.name as seller_name, (SELECT COUNT(*) FROM " . WRPM_DB::get_table('active_products') . " WHERE reseller_product_id = r.id) as is_used FROM " . WRPM_DB::get_table('reseller_products') . " r LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC", ARRAY_A);
             $this->render_template('active-products', ['action' => $action, 'row' => $row, 'customers' => $customers, 'resellers' => $resellers]);
         } else {
             $per_page = 15;
