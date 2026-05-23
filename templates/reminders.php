@@ -15,6 +15,55 @@
                     <p>Antrean reminder masih kosong. Pastikan Anda telah membuat data pelacakan produk aktif.</p>
                 </div>
             <?php else: ?>
+                <!-- Search & Filters Block -->
+                <div class="wrpm-filter-bar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; background: rgba(248, 250, 252, 0.8); border: 1px solid #e2e8f0; padding: 18px; border-radius: 12px;">
+                    <div>
+                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Cari Reminder</label>
+                        <input type="text" id="wrpm-reminder-search" class="wrpm-input" placeholder="Cari customer, produk..." style="width: 100%;" />
+                    </div>
+                    <div>
+                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Customer</label>
+                        <select id="wrpm-reminder-filter-customer" class="wrpm-select" style="width: 100%;">
+                            <option value="">-- Semua Customer --</option>
+                            <?php 
+                            $unique_customers = array_unique(array_column($rows, 'customer_name'));
+                            sort($unique_customers);
+                            foreach ($unique_customers as $cust): ?>
+                                <option value="<?php echo esc_attr($cust); ?>"><?php echo esc_html($cust); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Produk</label>
+                        <select id="wrpm-reminder-filter-product" class="wrpm-select" style="width: 100%;">
+                            <option value="">-- Semua Produk --</option>
+                            <?php 
+                            $unique_products = array_unique(array_column($rows, 'product_label'));
+                            sort($unique_products);
+                            foreach ($unique_products as $prod): ?>
+                                <option value="<?php echo esc_attr($prod); ?>"><?php echo esc_html($prod); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Milestone</label>
+                        <select id="wrpm-reminder-filter-milestone" class="wrpm-select" style="width: 100%;">
+                            <option value="">-- Semua Milestone --</option>
+                            <option value="H-7">H-7</option>
+                            <option value="H-3">H-3</option>
+                            <option value="H-1">H-1</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Status Kirim</label>
+                        <select id="wrpm-reminder-filter-status" class="wrpm-select" style="width: 100%;">
+                            <option value="">-- Semua Status --</option>
+                            <option value="pending">Pending</option>
+                            <option value="sent">Sent</option>
+                        </select>
+                    </div>
+                </div>
+
                 <table class="wrpm-table">
                     <thead>
                         <tr>
@@ -31,7 +80,11 @@
                     </thead>
                     <tbody>
                         <?php foreach ($rows as $r): ?>
-                            <tr>
+                            <tr class="wrpm-reminder-row" 
+                                data-customer="<?php echo esc_attr($r['customer_name']); ?>"
+                                data-product="<?php echo esc_attr($r['product_label']); ?>"
+                                data-milestone="H-<?php echo esc_attr($r['offset_days']); ?>"
+                                data-status="<?php echo esc_attr($r['status']); ?>">
                                 <td><strong><?php echo esc_html($r['customer_name']); ?></strong></td>
                                 <td><?php echo esc_html($r['product_label']); ?></td>
                                 <td>H-<?php echo esc_html($r['offset_days']); ?></td>
@@ -65,3 +118,56 @@
         </div>
     </div>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    function filterReminders() {
+        var searchVal = $('#wrpm-reminder-search').val().toLowerCase().trim();
+        var customerVal = $('#wrpm-reminder-filter-customer').val();
+        var productVal = $('#wrpm-reminder-filter-product').val();
+        var milestoneVal = $('#wrpm-reminder-filter-milestone').val();
+        var statusVal = $('#wrpm-reminder-filter-status').val();
+
+        var visibleCount = 0;
+
+        $('.wrpm-reminder-row').each(function() {
+            var $row = $(this);
+            var customer = $row.data('customer');
+            var product = $row.data('product');
+            var milestone = $row.data('milestone');
+            var status = $row.data('status');
+            
+            var textMatch = true;
+            if (searchVal) {
+                var rowText = $row.text().toLowerCase();
+                textMatch = rowText.indexOf(searchVal) > -1;
+            }
+
+            var customerMatch = !customerVal || customer === customerVal;
+            var productMatch = !productVal || product === productVal;
+            var milestoneMatch = !milestoneVal || milestone === milestoneVal;
+            var statusMatch = !statusVal || status === statusVal;
+
+            if (textMatch && customerMatch && productMatch && milestoneMatch && statusMatch) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        // Toggle empty message if no rows match
+        var $tbody = $('.wrpm-table tbody');
+        $('#wrpm-reminder-no-results').remove();
+        if (visibleCount === 0) {
+            $tbody.after('<div id="wrpm-reminder-no-results" class="wrpm-empty-state" style="padding: 30px;"><span class="dashicons dashicons-search" style="font-size: 2rem; color: #d1d5db; margin-bottom: 8px;"></span><p>Tidak ada antrean reminder yang cocok dengan filter Anda.</p></div>');
+            $('.wrpm-table').hide();
+        } else {
+            $('.wrpm-table').show();
+        }
+    }
+
+    $('#wrpm-reminder-search').on('keyup input', filterReminders);
+    $('#wrpm-reminder-filter-customer, #wrpm-reminder-filter-product, #wrpm-reminder-filter-milestone, #wrpm-reminder-filter-status').on('change', filterReminders);
+});
+</script>
