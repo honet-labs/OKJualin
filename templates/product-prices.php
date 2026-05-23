@@ -147,6 +147,7 @@
                                 <th>Nama Produk</th>
                                 <th>Kategori</th>
                                 <th>Tags</th>
+                                <th>Keterangan</th>
                                 <th>Seller</th>
                                 <th>Durasi</th>
                                 <th>Harga Beli</th>
@@ -171,6 +172,16 @@
                                         }
                                         ?>
                                     </td>
+                                    <td>
+                                        <a href="#" class="wrpm-view-detail" 
+                                           data-name="<?php echo esc_attr($r['name']); ?>" 
+                                           data-description="<?php echo esc_attr(wp_strip_all_tags($r['description'])); ?>" 
+                                           data-notes="<?php echo esc_attr(wp_strip_all_tags($r['notes'])); ?>" 
+                                           style="text-decoration: none; color: #4338ca; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #e0e7ff; border-radius: 6px; border: 1px solid #c7d2fe; transition: all 0.2s;"
+                                           title="Lihat Detail">
+                                            <span class="dashicons dashicons-visibility" style="font-size: 18px; width: 18px; height: 18px;"></span>
+                                        </a>
+                                    </td>
                                     <td><?php echo esc_html($r['seller_name'] ?: '-'); ?></td>
                                     <td><?php echo esc_html($r['duration_days']); ?> Hari</td>
                                     <td>Rp <?php echo number_format_i18n($r['reseller_price'], 0); ?></td>
@@ -194,3 +205,41 @@
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Modal Popup Detail Produk -->
+<div id="wrpmDetailModal" class="wrpm-modal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="wrpm-modal-content" style="background-color: #ffffff; border-radius: 12px; max-width: 550px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; animation: wrpmFadeIn 0.25s ease-out;">
+        <div class="wrpm-modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="wrpmModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #0f172a;">Detail Produk</h3>
+            <span class="wrpm-modal-close" style="color: #94a3b8; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.2s;">&times;</span>
+        </div>
+        <div class="wrpm-modal-body" style="padding: 24px; color: #334155; font-size: 0.95rem; line-height: 1.6;">
+            <div style="margin-bottom: 20px;">
+                <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">Deskripsi Produk</h4>
+                <div id="wrpmModalDescription" style="background: #f8fafc; border: 1px solid #f1f5f9; padding: 12px; border-radius: 8px; min-height: 40px; white-space: pre-wrap;">-</div>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 8px 0; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">Catatan Internal</h4>
+                <div id="wrpmModalNotes" style="background: #fffbeb; border: 1px solid #fef3c7; padding: 12px; border-radius: 8px; min-height: 40px; color: #92400e; white-space: pre-wrap;">-</div>
+            </div>
+        </div>
+        <div class="wrpm-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+            <button class="wrpm-btn wrpm-btn-secondary wrpm-modal-close-btn" style="cursor: pointer; padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 500;">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes wrpmFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.wrpm-modal-close:hover {
+    color: #475569 !important;
+}
+.wrpm-view-detail:hover {
+    background: #c7d2fe !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>

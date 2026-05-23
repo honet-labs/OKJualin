@@ -39,4 +39,29 @@ jQuery(document).ready(function($) {
             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
     });
+
+    // Modal display logic for product details
+    $('.wrpm-view-detail').on('click', function(e) {
+        e.preventDefault();
+        var name = $(this).data('name');
+        var desc = $(this).data('description') || '<i>Tidak ada deskripsi.</i>';
+        var notes = $(this).data('notes') || '<i>Tidak ada catatan tambahan.</i>';
+
+        $('#wrpmModalTitle').text(name);
+        $('#wrpmModalDescription').html(desc);
+        $('#wrpmModalNotes').html(notes);
+
+        $('#wrpmDetailModal').css('display', 'flex');
+    });
+
+    $('.wrpm-modal-close, .wrpm-modal-close-btn').on('click', function() {
+        $('#wrpmDetailModal').css('display', 'none');
+    });
+
+    // Close modal when clicking outside of it
+    $(window).on('click', function(e) {
+        if ($(e.target).is('#wrpmDetailModal')) {
+            $('#wrpmDetailModal').css('display', 'none');
+        }
+    });
 });
