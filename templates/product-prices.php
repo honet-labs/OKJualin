@@ -28,8 +28,23 @@
                         </div>
 
                         <div class="wrpm-form-group">
-                            <label class="wrpm-label">Kategori</label>
-                            <input type="text" name="category" class="wrpm-input" value="<?php echo $row ? esc_attr($row['category']) : ''; ?>" />
+                            <label class="wrpm-label">Kategori (Pilih atau Ketik Baru)</label>
+                            <select name="category" class="wrpm-select wrpm-select2-category" style="width: 100%;">
+                                <option value="">-- Pilih Kategori --</option>
+                                <?php
+                                $selected_category = $row ? trim($row['category']) : '';
+                                if ($selected_category !== '') {
+                                    echo '<option value="' . esc_attr($selected_category) . '" selected>' . esc_html($selected_category) . '</option>';
+                                }
+                                if (!empty($existing_categories)) {
+                                    foreach ($existing_categories as $cat) {
+                                        if ($cat !== $selected_category) {
+                                            echo '<option value="' . esc_attr($cat) . '">' . esc_html($cat) . '</option>';
+                                        }
+                                    }
+                                }
+                                ?>
+                            </select>
                         </div>
 
                         <div class="wrpm-form-group">

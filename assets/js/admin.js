@@ -13,6 +13,13 @@ jQuery(document).ready(function($) {
             tokenSeparators: [','],
             width: 'resolve'
         });
+
+        $('.wrpm-select2-category').select2({
+            placeholder: 'Pilih atau ketik kategori baru...',
+            tags: true,
+            allowClear: true,
+            width: 'resolve'
+        });
     }
 
     // Dynamic field calculations (e.g. autofilling dates, prices, etc)

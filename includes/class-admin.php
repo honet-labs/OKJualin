@@ -140,11 +140,19 @@ class WRPM_Admin {
             }
             sort($existing_tags);
 
+            // Fetch all unique categories from stored products
+            $existing_categories = $wpdb->get_col("SELECT DISTINCT category FROM " . WRPM_DB::get_table('product_prices') . " WHERE category IS NOT NULL AND category != ''");
+            if (!is_array($existing_categories)) {
+                $existing_categories = [];
+            }
+            sort($existing_categories);
+
             $this->render_template('product-prices', [
                 'action' => $action, 
                 'row' => $row, 
                 'sellers' => $sellers,
-                'existing_tags' => $existing_tags
+                'existing_tags' => $existing_tags,
+                'existing_categories' => $existing_categories
             ]);
         } else {
             $rows = $wpdb->get_results("SELECT p.*, s.name as seller_name FROM " . WRPM_DB::get_table('product_prices') . " p LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON p.seller_id = s.id ORDER BY p.name ASC", ARRAY_A);
