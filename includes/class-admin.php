@@ -44,8 +44,8 @@ class WRPM_Admin {
         );
 
         add_submenu_page('wrpm-dashboard', 'Dashboard', 'Dashboard', $cap, 'wrpm-dashboard', [$this, 'view_dashboard']);
-        add_submenu_page('wrpm-dashboard', 'Harga Produk', 'Harga Produk', $cap, 'wrpm-product-prices', [$this, 'view_product_prices']);
-        add_submenu_page('wrpm-dashboard', 'Produk Reseller', 'Produk Reseller', $cap, 'wrpm-reseller-products', [$this, 'view_reseller_products']);
+        add_submenu_page('wrpm-dashboard', 'Daftar Harga Produk', 'Daftar Harga Produk', $cap, 'wrpm-product-prices', [$this, 'view_product_prices']);
+        add_submenu_page('wrpm-dashboard', 'Pembelian Produk', 'Pembelian Produk', $cap, 'wrpm-reseller-products', [$this, 'view_reseller_products']);
         add_submenu_page('wrpm-dashboard', 'Customer', 'Customer', $cap, 'wrpm-customers', [$this, 'view_customers']);
         add_submenu_page('wrpm-dashboard', 'Seller', 'Seller', $cap, 'wrpm-sellers', [$this, 'view_sellers']);
         add_submenu_page('wrpm-dashboard', 'Produk Aktif', 'Produk Aktif', $cap, 'wrpm-active-products', [$this, 'view_active_products']);

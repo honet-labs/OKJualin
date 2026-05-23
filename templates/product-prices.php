@@ -4,7 +4,7 @@
         <!-- Add / Edit Page -->
         <div class="wrpm-header">
             <div>
-                <h1><?php echo $action === 'edit' ? 'Edit Harga Produk' : 'Tambah Harga Produk'; ?></h1>
+                <h1><?php echo $action === 'edit' ? 'Edit Daftar Harga Produk' : 'Tambah Daftar Harga Produk'; ?></h1>
                 <p class="wrpm-subtitle">Tetapkan konfigurasi harga master untuk produk yang dijual.</p>
             </div>
             <div class="wrpm-actions">
@@ -125,7 +125,7 @@
         <!-- List Page -->
         <div class="wrpm-header">
             <div>
-                <h1>Daftar Master Harga Produk</h1>
+                <h1>Daftar Harga Produk</h1>
                 <p class="wrpm-subtitle">Daftar harga retail, reseller, dan masa durasi aktif produk.</p>
             </div>
             <div class="wrpm-actions">

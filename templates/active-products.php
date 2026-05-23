@@ -23,9 +23,9 @@
 
                     <div class="wrpm-form-grid">
                         <div class="wrpm-form-group">
-                            <label class="wrpm-label">Pilih Produk Reseller Terkait <span class="wrpm-required">*</span></label>
+                            <label class="wrpm-label">Pilih Pembelian Produk Terkait <span class="wrpm-required">*</span></label>
                             <select name="reseller_product_id" class="wrpm-select wrpm-select2" style="width: 100%;" required>
-                                <option value="">-- Pilih Produk Reseller --</option>
+                                <option value="">-- Pilih Pembelian Produk --</option>
                                 <?php foreach ($resellers as $r): 
                                     $short_id = substr($r['id'], 0, 8);
                                     $seller_info = !empty($r['seller_name']) ? ' - ' . $r['seller_name'] : ' - Tanpa Seller';

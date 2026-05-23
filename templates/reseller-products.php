@@ -4,8 +4,8 @@
         <!-- Add / Edit Page -->
         <div class="wrpm-header">
             <div>
-                <h1><?php echo $action === 'edit' ? 'Edit Produk Reseller' : 'Tambah Produk Reseller'; ?></h1>
-                <p class="wrpm-subtitle">Daftarkan transaksi produk reseller yang dibeli dari supplier luar.</p>
+                <h1><?php echo $action === 'edit' ? 'Edit Pembelian Produk' : 'Tambah Pembelian Produk'; ?></h1>
+                <p class="wrpm-subtitle">Daftarkan transaksi produk yang dibeli dari supplier luar.</p>
             </div>
             <div class="wrpm-actions">
                 <a class="wrpm-btn wrpm-btn-secondary" href="<?php echo admin_url('admin.php?page=wrpm-reseller-products'); ?>">Kembali</a>
@@ -112,7 +112,7 @@
                     </div>
 
                     <div class="wrpm-form-actions wrpm-mt-2">
-                        <button type="submit" class="wrpm-btn wrpm-btn-primary">Simpan Produk Reseller</button>
+                        <button type="submit" class="wrpm-btn wrpm-btn-primary">Simpan Pembelian Produk</button>
                     </div>
                 </form>
             </div>
@@ -122,8 +122,8 @@
         <!-- List Page -->
         <div class="wrpm-header">
             <div>
-                <h1>Daftar Pembelian Produk Reseller</h1>
-                <p class="wrpm-subtitle">Daftar transaksi pembelian produk ke reseller supplier eksternal.</p>
+                <h1>Daftar Pembelian Produk</h1>
+                <p class="wrpm-subtitle">Daftar transaksi pembelian produk ke supplier eksternal.</p>
             </div>
             <div class="wrpm-actions">
                 <a class="wrpm-btn wrpm-btn-primary" href="<?php echo admin_url('admin.php?page=wrpm-reseller-products&action=add'); ?>">
