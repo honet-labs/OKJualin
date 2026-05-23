@@ -21,6 +21,8 @@ class WRPM_Admin {
         add_action('admin_post_wrpm_backup_data', [$this, 'backup_data']);
         add_action('admin_post_wrpm_restore_data', [$this, 'restore_data']);
         add_action('admin_post_wrpm_invoice_pdf', [$this, 'download_invoice_pdf']);
+        add_action('admin_post_wrpm_save_shortlink', [$this, 'save_shortlink']);
+        add_action('admin_post_wrpm_delete_shortlink', [$this, 'delete_shortlink']);
 
         // Manual reminder triggers
         add_action('admin_post_wrpm_send_reminder_manual', [$this, 'send_reminder_manual']);
@@ -50,6 +52,7 @@ class WRPM_Admin {
         add_submenu_page('wrpm-dashboard', 'Seller', 'Seller', $cap, 'wrpm-sellers', [$this, 'view_sellers']);
         add_submenu_page('wrpm-dashboard', 'Produk Aktif', 'Produk Aktif', $cap, 'wrpm-active-products', [$this, 'view_active_products']);
         add_submenu_page('wrpm-dashboard', 'Reminder', 'Reminder', $cap, 'wrpm-reminders', [$this, 'view_reminders']);
+        add_submenu_page('wrpm-dashboard', 'Shortlink Affiliate', 'Shortlink Affiliate', $cap, 'wrpm-shortlinks', [$this, 'view_shortlinks']);
         add_submenu_page('wrpm-dashboard', 'Laporan', 'Laporan', 'wrpm_view_reports', 'wrpm-reports', [$this, 'view_reports']);
         add_submenu_page('wrpm-dashboard', 'Logs', 'Logs', 'wrpm_view_logs', 'wrpm-logs', [$this, 'view_logs']);
         add_submenu_page('wrpm-dashboard', 'Settings', 'Settings', 'wrpm_manage_settings', 'wrpm-settings', [$this, 'view_settings']);
@@ -300,6 +303,39 @@ class WRPM_Admin {
         $this->render_template('reminders', ['rows' => $rows]);
     }
 
+    public function view_shortlinks() {
+        global $wpdb;
+        $action = !empty($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
+        $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
+
+        $row = null;
+        if (($action === 'edit' || $action === 'add') && !empty($id)) {
+            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('shortlinks') . " WHERE id = %s", $id), ARRAY_A);
+        }
+
+        if ($action === 'add' || $action === 'edit') {
+            $this->render_template('shortlinks', ['action' => $action, 'row' => $row]);
+        } else {
+            $per_page = 15;
+            $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+            $offset = ($paged - 1) * $per_page;
+
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('shortlinks'));
+            $total_pages = ceil($total_rows / $per_page);
+
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('shortlinks') . " ORDER BY created_at DESC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            
+            $this->render_template('shortlinks', [
+                'action' => 'list',
+                'rows' => $rows,
+                'paged' => $paged,
+                'total_pages' => $total_pages,
+                'total_rows' => $total_rows,
+                'per_page' => $per_page
+            ]);
+        }
+    }
+
     public function view_reports() {
         global $wpdb;
         $sales = $wpdb->get_results("SELECT start_date, price FROM " . WRPM_DB::get_table('active_products') . " WHERE payment_status = 'paid'", ARRAY_A);
@@ -335,6 +371,7 @@ class WRPM_Admin {
             'reseller_price' => (float)$_POST['reseller_price'],
             'sale_price' => (float)$_POST['sale_price'],
             'duration_days' => (int)$_POST['duration_days'],
+            'affiliate_url' => !empty($_POST['affiliate_url']) ? esc_url_raw($_POST['affiliate_url']) : '',
             'description' => wp_kses_post($_POST['description']),
             'notes' => wp_kses_post($_POST['notes']),
             'updated_at' => current_time('mysql'),
@@ -348,6 +385,34 @@ class WRPM_Admin {
             $data['created_at'] = current_time('mysql');
             $wpdb->insert(WRPM_DB::get_table('product_prices'), $data);
             WRPM_Reseller_Manager::log('create', 'product_price', $id, "Created product price: " . $data['name']);
+        }
+
+        if (!empty($_POST['affiliate_url']) && !empty($_POST['auto_create_shortlink'])) {
+            $short_key = sanitize_title($data['name']);
+            if (empty($short_key)) {
+                $short_key = substr(md5($id), 0, 8);
+            }
+            
+            $t_shortlinks = WRPM_DB::get_table('shortlinks');
+            $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$t_shortlinks} WHERE short_key = %s", $short_key), ARRAY_A);
+            
+            if ($existing) {
+                $wpdb->update($t_shortlinks, [
+                    'title' => 'Affiliate - ' . $data['name'],
+                    'destination_url' => $data['affiliate_url'],
+                    'updated_at' => current_time('mysql'),
+                ], ['id' => $existing['id']]);
+            } else {
+                $wpdb->insert($t_shortlinks, [
+                    'id' => wp_generate_uuid4(),
+                    'title' => 'Affiliate - ' . $data['name'],
+                    'short_key' => $short_key,
+                    'destination_url' => $data['affiliate_url'],
+                    'clicks' => 0,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql'),
+                ]);
+            }
         }
 
         wp_safe_redirect(admin_url('admin.php?page=wrpm-product-prices'));
@@ -454,6 +519,61 @@ class WRPM_Admin {
         WRPM_Reseller_Manager::log('delete', 'customer', $id, "Deleted customer ID: " . $id);
 
         wp_safe_redirect(admin_url('admin.php?page=wrpm-customers'));
+        exit;
+    }
+
+    public function save_shortlink() {
+        check_admin_referer('wrpm_save_shortlink');
+        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+
+        global $wpdb;
+        $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
+        $is_edit = !empty($_POST['id']);
+
+        $short_key = sanitize_title($_POST['short_key']);
+        if (empty($short_key)) {
+            $short_key = substr(md5(uniqid()), 0, 8);
+        }
+
+        $data = [
+            'id' => $id,
+            'title' => sanitize_text_field($_POST['title']),
+            'short_key' => $short_key,
+            'destination_url' => esc_url_raw($_POST['destination_url']),
+            'updated_at' => current_time('mysql'),
+        ];
+
+        $table = WRPM_DB::get_table('shortlinks');
+
+        $conflict = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$table} WHERE short_key = %s AND id != %s", $short_key, $id));
+        if ($conflict) {
+            wp_die('Key Shortlink ini sudah digunakan oleh shortlink lain! Silakan gunakan key lain.');
+        }
+
+        if ($is_edit) {
+            $wpdb->update($table, $data, ['id' => $_POST['id']]);
+            WRPM_Reseller_Manager::log('update', 'shortlink', $id, "Updated shortlink: " . $data['title']);
+        } else {
+            $data['clicks'] = 0;
+            $data['created_at'] = current_time('mysql');
+            $wpdb->insert($table, $data);
+            WRPM_Reseller_Manager::log('create', 'shortlink', $id, "Created shortlink: " . $data['title']);
+        }
+
+        wp_safe_redirect(admin_url('admin.php?page=wrpm-shortlinks'));
+        exit;
+    }
+
+    public function delete_shortlink() {
+        $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
+        check_admin_referer('wrpm_delete_shortlink_' . $id);
+        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+
+        global $wpdb;
+        $wpdb->delete(WRPM_DB::get_table('shortlinks'), ['id' => $id]);
+        WRPM_Reseller_Manager::log('delete', 'shortlink', $id, "Deleted shortlink ID: " . $id);
+
+        wp_safe_redirect(admin_url('admin.php?page=wrpm-shortlinks'));
         exit;
     }
 

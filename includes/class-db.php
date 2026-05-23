@@ -22,6 +22,7 @@ class WRPM_DB {
         $t_active = self::get_table('active_products');
         $t_reminders = self::get_table('active_reminders');
         $t_logs = self::get_table('logs');
+        $t_shortlinks = self::get_table('shortlinks');
 
         $sql_prices = "CREATE TABLE {$t_prices} (
             id CHAR(36) NOT NULL,
@@ -32,6 +33,7 @@ class WRPM_DB {
             reseller_price BIGINT(20) NOT NULL DEFAULT 0,
             sale_price BIGINT(20) NOT NULL DEFAULT 0,
             duration_days INT(11) NOT NULL DEFAULT 0,
+            affiliate_url TEXT NULL,
             description LONGTEXT NULL,
             notes LONGTEXT NULL,
             created_at DATETIME NOT NULL,
@@ -41,6 +43,18 @@ class WRPM_DB {
             KEY name (name(80)),
             KEY category (category(40)),
             KEY seller_id (seller_id)
+        ) {$charset};";
+
+        $sql_shortlinks = "CREATE TABLE {$t_shortlinks} (
+            id CHAR(36) NOT NULL,
+            title VARCHAR(200) NOT NULL,
+            short_key VARCHAR(50) NOT NULL,
+            destination_url TEXT NOT NULL,
+            clicks INT(11) NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY short_key (short_key)
         ) {$charset};";
 
         $sql_reseller = "CREATE TABLE {$t_reseller} (
@@ -163,6 +177,7 @@ class WRPM_DB {
         ) {$charset};";
 
         dbDelta($sql_prices);
+        dbDelta($sql_shortlinks);
         dbDelta($sql_reseller);
         dbDelta($sql_customers);
         dbDelta($sql_sellers);
@@ -176,7 +191,7 @@ class WRPM_DB {
 
     public static function uninstall() {
         global $wpdb;
-        $tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs'];
+        $tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs', 'shortlinks'];
         foreach ($tables as $t) {
             $wpdb->query("DROP TABLE IF EXISTS " . self::get_table($t));
         }

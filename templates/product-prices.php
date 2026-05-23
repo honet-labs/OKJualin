@@ -102,6 +102,18 @@
                             <label class="wrpm-label">Durasi Masa Aktif (Hari)</label>
                             <input type="number" name="duration_days" class="wrpm-input" value="<?php echo $row ? esc_attr($row['duration_days']) : '30'; ?>" min="1" required />
                         </div>
+
+                        <div class="wrpm-form-group">
+                            <label class="wrpm-label">Link Affiliate / Referral (Opsional)</label>
+                            <input type="url" name="affiliate_url" class="wrpm-input" value="<?php echo $row ? esc_url($row['affiliate_url']) : ''; ?>" placeholder="https://domain.com/ref?id=123" />
+                        </div>
+
+                        <div class="wrpm-form-group" style="display: flex; align-items: center; padding-top: 25px;">
+                            <label class="wrpm-label" style="display: flex; align-items: center; font-weight: 500; cursor: pointer; margin-bottom: 0;">
+                                <input type="checkbox" name="auto_create_shortlink" value="1" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;" checked />
+                                Buat/Perbarui Shortlink Otomatis
+                            </label>
+                        </div>
                     </div>
 
                     <div class="wrpm-form-group wrpm-mt-1">
@@ -165,7 +177,17 @@
                             <?php foreach ($rows as $r): ?>
                                 <tr>
                                     <td><code><?php echo esc_html(substr($r['id'], 0, 8)); ?></code></td>
-                                    <td><strong><?php echo esc_html($r['name']); ?></strong></td>
+                                    <td>
+                                        <strong><?php echo esc_html($r['name']); ?></strong>
+                                        <?php if (!empty($r['affiliate_url'])): ?>
+                                            <div style="margin-top: 4px; display: flex; gap: 6px; align-items: center;">
+                                                <span class="wrpm-badge" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: #ffffff; border: none; font-size: 10px; padding: 2px 6px;">Affiliate</span>
+                                                <a href="<?php echo esc_url($r['affiliate_url']); ?>" target="_blank" style="text-decoration: none; color: #4f46e5; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center;" title="Kunjungi Link">
+                                                    <span class="dashicons dashicons-admin-links" style="font-size: 12px; width: 12px; height: 12px; margin-right: 2px;"></span> Kunjungi
+                                                </a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><span class="wrpm-badge wrpm-badge-secondary"><?php echo esc_html($r['category'] ?: 'Umum'); ?></span></td>
                                     <td>
                                         <?php

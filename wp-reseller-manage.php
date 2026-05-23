@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Reseller Manage
  * Description: Manajemen reseller premium: master harga, reseller product, customer, active product tracker, automated reminders (email/telegram/whatsapp WAHA), brandable PDF invoice customizer, JSON backup & ECharts analytics dashboard.
- * Version: 0.0.8
+ * Version: 0.0.9
  * Author: HONET
  * License: GPLv2 or later
  * Text Domain: wp-reseller-product-manager
@@ -11,7 +11,7 @@
 if (!defined('ABSPATH')) { exit; }
 
 class WRPM_App {
-    const VERSION = '0.0.8';
+    const VERSION = '0.0.9';
 
     private static $instance = null;
     public static function instance() {
@@ -50,6 +50,9 @@ class WRPM_App {
         // DB Upgrade handler
         add_action('admin_init', [$this, 'maybe_upgrade_db']);
 
+        // Listen to shortlink redirects
+        add_action('parse_request', [$this, 'handle_shortlink_redirect']);
+
         // Initialize modules
         if (is_admin()) {
             new WRPM_Admin();
@@ -62,6 +65,30 @@ class WRPM_App {
         add_action('wrpm_daily_cron', [WRPM_Reseller_Manager::class, 'process_daily_cron']);
         if (!wp_next_scheduled('wrpm_daily_cron')) {
             wp_schedule_event(time(), 'daily', 'wrpm_daily_cron');
+        }
+    }
+
+    public function handle_shortlink_redirect() {
+        $request_uri = $_SERVER['REQUEST_URI'];
+        $path = parse_url($request_uri, PHP_URL_PATH);
+        
+        $pos = strpos($path, '/go/');
+        if ($pos !== false) {
+            $key = substr($path, $pos + 4);
+            $key = trim($key, '/');
+            
+            if (!empty($key)) {
+                global $wpdb;
+                $table = $wpdb->prefix . 'wrpm_shortlinks';
+                
+                $link = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE short_key = %s", $key), ARRAY_A);
+                if ($link) {
+                    $wpdb->query($wpdb->prepare("UPDATE {$table} SET clicks = clicks + 1 WHERE id = %s", $link['id']));
+                    
+                    wp_redirect($link['destination_url']);
+                    exit;
+                }
+            }
         }
     }
 
