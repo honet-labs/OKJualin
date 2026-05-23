@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_Notifier {
+class OKJ_Notifier {
     private $settings;
 
     public function __construct() {
@@ -36,7 +36,7 @@ class WRPM_Notifier {
             'waha_api_token' => '',
             'waha_session_name' => 'default',
         ];
-        $opt = get_option('wrpm_settings_v1', []);
+        $opt = get_option('okj_settings_v1', []);
         return array_merge($defaults, is_array($opt) ? $opt : []);
     }
 

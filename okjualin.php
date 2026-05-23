@@ -1,16 +1,16 @@
-<?php
+﻿<?php
 /**
- * Plugin Name: WP Reseller Manage
+ * Plugin Name: OKJualin
  * Description: Manajemen reseller premium: master harga, reseller product, customer, active product tracker, automated reminders (email/telegram/whatsapp WAHA), brandable PDF invoice customizer, JSON backup & ECharts analytics dashboard.
  * Version: 0.0.9
  * Author: HONET
  * License: GPLv2 or later
- * Text Domain: wp-reseller-product-manager
+ * Text Domain: okjualin
  */
 
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_App {
+class OKJ_App {
     const VERSION = '0.0.9';
 
     private static $instance = null;
@@ -28,22 +28,22 @@ class WRPM_App {
     }
 
     private function define_constants() {
-        if (!defined('WRPM_PLUGIN_DIR')) {
-            define('WRPM_PLUGIN_DIR', plugin_dir_path(__FILE__));
+        if (!defined('OKJ_PLUGIN_DIR')) {
+            define('OKJ_PLUGIN_DIR', plugin_dir_path(__FILE__));
         }
-        if (!defined('WRPM_PLUGIN_URL')) {
-            define('WRPM_PLUGIN_URL', plugin_dir_url(__FILE__));
+        if (!defined('OKJ_PLUGIN_URL')) {
+            define('OKJ_PLUGIN_URL', plugin_dir_url(__FILE__));
         }
     }
 
     private function includes() {
-        require_once WRPM_PLUGIN_DIR . 'includes/class-db.php';
-        require_once WRPM_PLUGIN_DIR . 'includes/class-notifier.php';
-        require_once WRPM_PLUGIN_DIR . 'includes/class-pdf-invoice.php';
-        require_once WRPM_PLUGIN_DIR . 'includes/class-backup.php';
-        require_once WRPM_PLUGIN_DIR . 'includes/class-updater.php';
-        require_once WRPM_PLUGIN_DIR . 'includes/class-reseller-manager.php';
-        require_once WRPM_PLUGIN_DIR . 'includes/class-admin.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-db.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-notifier.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-pdf-invoice.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-backup.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-updater.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-reseller-manager.php';
+        require_once OKJ_PLUGIN_DIR . 'includes/class-admin.php';
     }
 
     private function init() {
@@ -55,16 +55,16 @@ class WRPM_App {
 
         // Initialize modules
         if (is_admin()) {
-            new WRPM_Admin();
+            new OKJ_Admin();
         }
 
         // Initialize GitHub auto-updater
-        new WRPM_Updater(__FILE__);
+        new OKJ_Updater(__FILE__);
 
         // Cron Scheduling
-        add_action('wrpm_daily_cron', [WRPM_Reseller_Manager::class, 'process_daily_cron']);
-        if (!wp_next_scheduled('wrpm_daily_cron')) {
-            wp_schedule_event(time(), 'daily', 'wrpm_daily_cron');
+        add_action('okj_daily_cron', [OKJ_Reseller_Manager::class, 'process_daily_cron']);
+        if (!wp_next_scheduled('okj_daily_cron')) {
+            wp_schedule_event(time(), 'daily', 'okj_daily_cron');
         }
     }
 
@@ -79,7 +79,7 @@ class WRPM_App {
             
             if (!empty($key)) {
                 global $wpdb;
-                $table = $wpdb->prefix . 'wrpm_shortlinks';
+                $table = $wpdb->prefix . 'okj_shortlinks';
                 
                 $link = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE short_key = %s", $key), ARRAY_A);
                 if ($link) {
@@ -93,27 +93,27 @@ class WRPM_App {
     }
 
     public function maybe_upgrade_db() {
-        $db_ver = get_option('wrpm_db_version', '');
+        $db_ver = get_option('okj_db_version', '');
         if ($db_ver !== self::VERSION) {
-            WRPM_DB::install();
-            update_option('wrpm_db_version', self::VERSION);
+            OKJ_DB::install();
+            update_option('okj_db_version', self::VERSION);
         }
     }
 
     public static function activate() {
-        WRPM_DB::install();
-        if (!wp_next_scheduled('wrpm_daily_cron')) {
-            wp_schedule_event(time(), 'daily', 'wrpm_daily_cron');
+        OKJ_DB::install();
+        if (!wp_next_scheduled('okj_daily_cron')) {
+            wp_schedule_event(time(), 'daily', 'okj_daily_cron');
         }
     }
 
     public static function deactivate() {
-        wp_clear_scheduled_hook('wrpm_daily_cron');
+        wp_clear_scheduled_hook('okj_daily_cron');
     }
 }
 
-register_activation_hook(__FILE__, [WRPM_App::class, 'activate']);
-register_deactivation_hook(__FILE__, [WRPM_App::class, 'deactivate']);
+register_activation_hook(__FILE__, [OKJ_App::class, 'activate']);
+register_deactivation_hook(__FILE__, [OKJ_App::class, 'deactivate']);
 
 // Boot the application
-WRPM_App::instance();
+OKJ_App::instance();

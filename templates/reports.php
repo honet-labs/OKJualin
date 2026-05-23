@@ -1,19 +1,19 @@
-<?php if (!defined('ABSPATH')) { exit; } ?>
-<div class="wrpm-wrap">
-    <div class="wrpm-header">
+﻿<?php if (!defined('ABSPATH')) { exit; } ?>
+<div class="okj-wrap">
+    <div class="okj-header">
         <div>
             <h1>Laporan Keuangan & Penjualan</h1>
-            <p class="wrpm-subtitle">Unduh rekapitulasi data penjualan bulanan untuk pelaporan pajak dan analisis performa keuangan.</p>
+            <p class="okj-subtitle">Unduh rekapitulasi data penjualan bulanan untuk pelaporan pajak dan analisis performa keuangan.</p>
         </div>
     </div>
 
-    <div class="wrpm-grid wrpm-grid-3 wrpm-mt-2">
+    <div class="okj-grid okj-grid-3 okj-mt-2">
         <!-- Quick stats card -->
-        <div class="wrpm-card">
-            <div class="wrpm-card-header">
+        <div class="okj-card">
+            <div class="okj-card-header">
                 <h2>Total Volume Penjualan</h2>
             </div>
-            <div class="wrpm-card-body">
+            <div class="okj-card-body">
                 <?php
                 $total_items = count($sales);
                 $total_amount = 0;
@@ -21,32 +21,32 @@
                     $total_amount += (float)$s['price'];
                 }
                 ?>
-                <h3 class="wrpm-text-indigo" style="font-size: 2.2rem; margin: 10px 0;"><?php echo $total_items; ?> Layanan</h3>
-                <p class="wrpm-text-muted">Total transaksi layanan dengan status lunas (Paid).</p>
+                <h3 class="okj-text-indigo" style="font-size: 2.2rem; margin: 10px 0;"><?php echo $total_items; ?> Layanan</h3>
+                <p class="okj-text-muted">Total transaksi layanan dengan status lunas (Paid).</p>
             </div>
         </div>
 
-        <div class="wrpm-card">
-            <div class="wrpm-card-header">
+        <div class="okj-card">
+            <div class="okj-card-header">
                 <h2>Total Omset Bersih</h2>
             </div>
-            <div class="wrpm-card-body">
-                <h3 class="wrpm-text-success" style="font-size: 2.2rem; margin: 10px 0;">Rp <?php echo number_format_i18n($total_amount, 0); ?></h3>
-                <p class="wrpm-text-muted">Omset bersih terakumulasi dari seluruh penjualan customer.</p>
+            <div class="okj-card-body">
+                <h3 class="okj-text-success" style="font-size: 2.2rem; margin: 10px 0;">Rp <?php echo number_format_i18n($total_amount, 0); ?></h3>
+                <p class="okj-text-muted">Omset bersih terakumulasi dari seluruh penjualan customer.</p>
             </div>
         </div>
 
         <!-- Export Monthly Report Widget -->
-        <div class="wrpm-card">
-            <div class="wrpm-card-header">
+        <div class="okj-card">
+            <div class="okj-card-header">
                 <h2>Unduh Rekap Laporan Bulanan (PDF)</h2>
             </div>
-            <div class="wrpm-card-body">
+            <div class="okj-card-body">
                 <form method="get" action="<?php echo admin_url('admin-post.php'); ?>" target="_blank">
-                    <input type="hidden" name="action" value="wrpm_monthly_report_pdf" />
-                    <div class="wrpm-form-group">
-                        <label class="wrpm-label">Pilih Bulan</label>
-                        <select name="ym" class="wrpm-select" required>
+                    <input type="hidden" name="action" value="okj_monthly_report_pdf" />
+                    <div class="okj-form-group">
+                        <label class="okj-label">Pilih Bulan</label>
+                        <select name="ym" class="okj-select" required>
                             <?php
                             $months = [];
                             foreach ($sales as $s) {
@@ -66,8 +66,8 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="wrpm-form-actions wrpm-mt-1">
-                        <button type="submit" class="wrpm-btn wrpm-btn-primary" style="width: 100%;">
+                    <div class="okj-form-actions okj-mt-1">
+                        <button type="submit" class="okj-btn okj-btn-primary" style="width: 100%;">
                             <span class="dashicons dashicons-pdf"></span> Unduh Laporan PDF
                         </button>
                     </div>

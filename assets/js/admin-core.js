@@ -1,24 +1,24 @@
-(function(){
+﻿(function(){
   'use strict';
 
   function ensureModal(){
-    var m = document.getElementById('wrpm-modal');
+    var m = document.getElementById('okj-modal');
     if(m) return m;
     m = document.createElement('div');
-    m.id = 'wrpm-modal';
-    m.className = 'wrpm-modal';
+    m.id = 'okj-modal';
+    m.className = 'okj-modal';
     m.innerHTML = '' +
-      '<div class="wrpm-modal-backdrop" data-wrpm-close="1"></div>' +
-      '<div class="wrpm-modal-card" role="dialog" aria-modal="true">' +
-        '<div class="wrpm-modal-head">' +
-          '<div class="wrpm-modal-title">Preview</div>' +
-          '<button type="button" class="button" data-wrpm-close="1">Close</button>' +
+      '<div class="okj-modal-backdrop" data-okj-close="1"></div>' +
+      '<div class="okj-modal-card" role="dialog" aria-modal="true">' +
+        '<div class="okj-modal-head">' +
+          '<div class="okj-modal-title">Preview</div>' +
+          '<button type="button" class="button" data-okj-close="1">Close</button>' +
         '</div>' +
-        '<div class="wrpm-modal-body"></div>' +
+        '<div class="okj-modal-body"></div>' +
       '</div>';
     document.body.appendChild(m);
     m.addEventListener('click', function(e){
-      if(e.target && e.target.getAttribute && e.target.getAttribute('data-wrpm-close')){
+      if(e.target && e.target.getAttribute && e.target.getAttribute('data-okj-close')){
         e.preventDefault();
         m.classList.remove('open');
       }
@@ -31,8 +31,8 @@
 
   function openModal(title, node){
     var m = ensureModal();
-    var t = m.querySelector('.wrpm-modal-title');
-    var b = m.querySelector('.wrpm-modal-body');
+    var t = m.querySelector('.okj-modal-title');
+    var b = m.querySelector('.okj-modal-body');
     if(t) t.textContent = title || 'Preview';
     if(b){
       b.innerHTML = '';
@@ -86,10 +86,10 @@
 
   document.addEventListener('click', function(e){
     var btn = e.target.closest ? e.target.closest('.fl-kebab') : null;
-    var infoBtn = e.target.closest ? e.target.closest('.wrpm-info-btn') : null;
+    var infoBtn = e.target.closest ? e.target.closest('.okj-info-btn') : null;
 
     var item = e.target.closest ? e.target.closest('.fl-copy-shortcode') : null;
-    var wa = e.target.closest ? e.target.closest('.wrpm-copy-wa') : null;
+    var wa = e.target.closest ? e.target.closest('.okj-copy-wa') : null;
 
     if(wa){
       e.preventDefault();
@@ -100,10 +100,10 @@
     }
     if(infoBtn){
       e.preventDefault();
-      var wrapInfo = infoBtn.parentElement ? infoBtn.parentElement.querySelector('.wrpm-page-info') : null;
+      var wrapInfo = infoBtn.parentElement ? infoBtn.parentElement.querySelector('.okj-page-info') : null;
       if(wrapInfo){
         var box = document.createElement('div');
-        box.className = 'wrpm-info-box';
+        box.className = 'okj-info-box';
         box.innerHTML = wrapInfo.innerHTML;
         openModal('Info', box);
       }
@@ -112,7 +112,7 @@
     }
 
 
-    var vjson = e.target.closest ? e.target.closest('.wrpm-view-json') : null;
+    var vjson = e.target.closest ? e.target.closest('.okj-view-json') : null;
     if(vjson){
       e.preventDefault();
       var title = vjson.getAttribute('data-title') || 'JSON';
@@ -120,27 +120,27 @@
       var pretty = raw;
       try{ pretty = JSON.stringify(JSON.parse(raw), null, 2); }catch(err){}
       var pre = document.createElement('pre');
-      pre.className = 'wrpm-pre';
+      pre.className = 'okj-pre';
       pre.textContent = pretty;
       openModal(title, pre);
       closeMenus();
       return;
     }
 
-    var vtext = e.target.closest ? e.target.closest('.wrpm-view-text') : null;
+    var vtext = e.target.closest ? e.target.closest('.okj-view-text') : null;
     if(vtext){
       e.preventDefault();
       var t2 = vtext.getAttribute('data-title') || 'Text';
       var txt = vtext.getAttribute('data-text') || '';
       var pre2 = document.createElement('pre');
-      pre2.className = 'wrpm-pre';
+      pre2.className = 'okj-pre';
       pre2.textContent = txt;
       openModal(t2, pre2);
       closeMenus();
       return;
     }
 
-    var vimg = e.target.closest ? e.target.closest('.wrpm-view-images') : null;
+    var vimg = e.target.closest ? e.target.closest('.okj-view-images') : null;
     if(vimg){
       e.preventDefault();
       var t3 = vimg.getAttribute('data-title') || 'Images';
@@ -148,7 +148,7 @@
       var urls = [];
       try{ urls = JSON.parse(rawu) || []; }catch(err){}
       var wrap = document.createElement('div');
-      wrap.className = 'wrpm-img-grid';
+      wrap.className = 'okj-img-grid';
       urls.forEach(function(u){
         if(!u) return;
         var a = document.createElement('a');
@@ -226,7 +226,7 @@
 
   // Extend duration popup
   document.addEventListener('click', function(e){
-    var b = e.target.closest ? e.target.closest('.wrpm-extend-btn') : null;
+    var b = e.target.closest ? e.target.closest('.okj-extend-btn') : null;
     if(!b) return;
     e.preventDefault();
     var id = b.getAttribute('data-id') || '';
@@ -240,7 +240,7 @@
       return;
     }
 
-    var f = document.getElementById('wrpm-extend-form');
+    var f = document.getElementById('okj-extend-form');
     if(!f) return;
     f.querySelector('input[name=id]').value = id;
     f.querySelector('input[name=days]').value = String(parseInt(days,10));

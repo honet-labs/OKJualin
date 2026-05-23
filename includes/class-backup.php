@@ -1,21 +1,21 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_Backup {
+class OKJ_Backup {
     public static function export_json() {
-        if (!current_user_can('wrpm_manage_settings')) {
-            wp_die(esc_html__('Forbidden', 'wp-reseller-product-manager'));
+        if (!current_user_can('okj_manage_settings')) {
+            wp_die(esc_html__('Forbidden', 'okjualin'));
         }
 
         global $wpdb;
         $tables = [
-            'product_prices' => WRPM_DB::get_table('product_prices'),
-            'reseller_products' => WRPM_DB::get_table('reseller_products'),
-            'customers' => WRPM_DB::get_table('customers'),
-            'sellers' => WRPM_DB::get_table('sellers'),
-            'active_products' => WRPM_DB::get_table('active_products'),
-            'active_reminders' => WRPM_DB::get_table('active_reminders'),
-            'logs' => WRPM_DB::get_table('logs'),
+            'product_prices' => OKJ_DB::get_table('product_prices'),
+            'reseller_products' => OKJ_DB::get_table('reseller_products'),
+            'customers' => OKJ_DB::get_table('customers'),
+            'sellers' => OKJ_DB::get_table('sellers'),
+            'active_products' => OKJ_DB::get_table('active_products'),
+            'active_reminders' => OKJ_DB::get_table('active_reminders'),
+            'logs' => OKJ_DB::get_table('logs'),
         ];
 
         $data = [];
@@ -23,10 +23,10 @@ class WRPM_Backup {
             $data[$key] = $wpdb->get_results("SELECT * FROM {$table}", ARRAY_A);
         }
 
-        $data['settings'] = get_option('wrpm_settings_v1', []);
+        $data['settings'] = get_option('okj_settings_v1', []);
 
         $json = wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        $filename = 'wrpm-backup-' . wp_date('Y-m-d-His') . '.json';
+        $filename = 'okj-backup-' . wp_date('Y-m-d-His') . '.json';
 
         nocache_headers();
         header('Content-Type: application/json; charset=utf-8');
@@ -37,7 +37,7 @@ class WRPM_Backup {
     }
 
     public static function import_json($file_path) {
-        if (!current_user_can('wrpm_manage_settings')) {
+        if (!current_user_can('okj_manage_settings')) {
             return ['ok' => false, 'error' => 'Forbidden'];
         }
 
@@ -56,17 +56,17 @@ class WRPM_Backup {
 
         // Restore Settings
         if (isset($data['settings']) && is_array($data['settings'])) {
-            update_option('wrpm_settings_v1', $data['settings']);
+            update_option('okj_settings_v1', $data['settings']);
         }
 
         $tables = [
-            'product_prices' => WRPM_DB::get_table('product_prices'),
-            'reseller_products' => WRPM_DB::get_table('reseller_products'),
-            'customers' => WRPM_DB::get_table('customers'),
-            'sellers' => WRPM_DB::get_table('sellers'),
-            'active_products' => WRPM_DB::get_table('active_products'),
-            'active_reminders' => WRPM_DB::get_table('active_reminders'),
-            'logs' => WRPM_DB::get_table('logs'),
+            'product_prices' => OKJ_DB::get_table('product_prices'),
+            'reseller_products' => OKJ_DB::get_table('reseller_products'),
+            'customers' => OKJ_DB::get_table('customers'),
+            'sellers' => OKJ_DB::get_table('sellers'),
+            'active_products' => OKJ_DB::get_table('active_products'),
+            'active_reminders' => OKJ_DB::get_table('active_reminders'),
+            'logs' => OKJ_DB::get_table('logs'),
         ];
 
         foreach ($tables as $key => $table) {

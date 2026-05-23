@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_Updater {
+class OKJ_Updater {
     private $file;
     private $slug;
     private $repo;
@@ -11,7 +11,7 @@ class WRPM_Updater {
         $this->file = $file;
         $this->slug = plugin_basename($file);
 
-        $settings = get_option('wrpm_settings_v1', []);
+        $settings = get_option('okj_settings_v1', []);
         $this->repo = !empty($settings['github_repo']) ? trim((string)$settings['github_repo']) : '';
         $this->token = !empty($settings['github_token']) ? trim((string)$settings['github_token']) : '';
 
@@ -45,12 +45,12 @@ class WRPM_Updater {
         $remote = $this->get_github_release();
         if (!$remote) return $transient;
 
-        $current = WRPM_App::VERSION;
+        $current = OKJ_App::VERSION;
         $new_ver = ltrim((string)($remote['tag_name'] ?? '0.0.0'), 'v');
 
         if (version_compare($current, $new_ver, '<')) {
             $obj = new stdClass();
-            $obj->slug = 'wp-reseller-product-manager';
+            $obj->slug = 'okjualin';
             $obj->plugin = $this->slug;
             $obj->new_version = $new_ver;
             $obj->url = 'https://github.com/' . $this->repo;
@@ -65,7 +65,7 @@ class WRPM_Updater {
 
     public function plugin_info($res, $action, $args) {
         if ($action !== 'plugin_information') return $res;
-        if (empty($args->slug) || $args->slug !== 'wp-reseller-product-manager') return $res;
+        if (empty($args->slug) || $args->slug !== 'okjualin') return $res;
 
         $remote = $this->get_github_release();
         if (!$remote) return $res;
@@ -73,8 +73,8 @@ class WRPM_Updater {
         $new_ver = ltrim((string)($remote['tag_name'] ?? '0.0.0'), 'v');
 
         $res = new stdClass();
-        $res->name = 'WP Reseller Manage';
-        $res->slug = 'wp-reseller-product-manager';
+        $res->name = 'OKJualin';
+        $res->slug = 'okjualin';
         $res->version = $new_ver;
         $res->author = 'HONET';
         $res->homepage = 'https://github.com/' . $this->repo;

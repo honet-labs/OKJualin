@@ -1,4 +1,4 @@
-(function($){
+﻿(function($){
   // ---------- small utilities ----------
   function isPlainObject(o){
     return Object.prototype.toString.call(o) === '[object Object]';

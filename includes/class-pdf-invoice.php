@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_PDF_Invoice {
+class OKJ_PDF_Invoice {
     private function hex_to_rgb($hex) {
         $hex = str_replace('#', '', (string)$hex);
         if (strlen($hex) === 3) {

@@ -1,68 +1,68 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_Admin {
+class OKJ_Admin {
     public function __construct() {
         add_action('admin_menu', [$this, 'register_menus']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
 
         // Form post hooks
-        add_action('admin_post_wrpm_save_price', [$this, 'save_product_price']);
-        add_action('admin_post_wrpm_delete_price', [$this, 'delete_product_price']);
-        add_action('admin_post_wrpm_save_seller', [$this, 'save_seller']);
-        add_action('admin_post_wrpm_delete_seller', [$this, 'delete_seller']);
-        add_action('admin_post_wrpm_save_customer', [$this, 'save_customer']);
-        add_action('admin_post_wrpm_delete_customer', [$this, 'delete_customer']);
-        add_action('admin_post_wrpm_save_reseller_product', [$this, 'save_reseller_product']);
-        add_action('admin_post_wrpm_delete_reseller_product', [$this, 'delete_reseller_product']);
-        add_action('admin_post_wrpm_save_active_product', [$this, 'save_active_product']);
-        add_action('admin_post_wrpm_delete_active_product', [$this, 'delete_active_product']);
-        add_action('admin_post_wrpm_save_settings', [$this, 'save_settings']);
-        add_action('admin_post_wrpm_backup_data', [$this, 'backup_data']);
-        add_action('admin_post_wrpm_restore_data', [$this, 'restore_data']);
-        add_action('admin_post_wrpm_invoice_pdf', [$this, 'download_invoice_pdf']);
-        add_action('admin_post_wrpm_save_shortlink', [$this, 'save_shortlink']);
-        add_action('admin_post_wrpm_delete_shortlink', [$this, 'delete_shortlink']);
+        add_action('admin_post_okj_save_price', [$this, 'save_product_price']);
+        add_action('admin_post_okj_delete_price', [$this, 'delete_product_price']);
+        add_action('admin_post_okj_save_seller', [$this, 'save_seller']);
+        add_action('admin_post_okj_delete_seller', [$this, 'delete_seller']);
+        add_action('admin_post_okj_save_customer', [$this, 'save_customer']);
+        add_action('admin_post_okj_delete_customer', [$this, 'delete_customer']);
+        add_action('admin_post_okj_save_reseller_product', [$this, 'save_reseller_product']);
+        add_action('admin_post_okj_delete_reseller_product', [$this, 'delete_reseller_product']);
+        add_action('admin_post_okj_save_active_product', [$this, 'save_active_product']);
+        add_action('admin_post_okj_delete_active_product', [$this, 'delete_active_product']);
+        add_action('admin_post_okj_save_settings', [$this, 'save_settings']);
+        add_action('admin_post_okj_backup_data', [$this, 'backup_data']);
+        add_action('admin_post_okj_restore_data', [$this, 'restore_data']);
+        add_action('admin_post_okj_invoice_pdf', [$this, 'download_invoice_pdf']);
+        add_action('admin_post_okj_save_shortlink', [$this, 'save_shortlink']);
+        add_action('admin_post_okj_delete_shortlink', [$this, 'delete_shortlink']);
 
         // Manual reminder triggers
-        add_action('admin_post_wrpm_send_reminder_manual', [$this, 'send_reminder_manual']);
+        add_action('admin_post_okj_send_reminder_manual', [$this, 'send_reminder_manual']);
 
         // AJAX hooks for quick add and connection testing
-        add_action('wp_ajax_wrpm_quick_add_seller', [$this, 'quick_add_seller']);
-        add_action('wp_ajax_wrpm_quick_add_customer', [$this, 'quick_add_customer']);
-        add_action('wp_ajax_wrpm_test_waha', [$this, 'ajax_test_waha']);
-        add_action('wp_ajax_wrpm_test_telegram', [$this, 'ajax_test_telegram']);
-        add_action('wp_ajax_wrpm_test_smtp', [$this, 'ajax_test_smtp']);
+        add_action('wp_ajax_okj_quick_add_seller', [$this, 'quick_add_seller']);
+        add_action('wp_ajax_okj_quick_add_customer', [$this, 'quick_add_customer']);
+        add_action('wp_ajax_okj_test_waha', [$this, 'ajax_test_waha']);
+        add_action('wp_ajax_okj_test_telegram', [$this, 'ajax_test_telegram']);
+        add_action('wp_ajax_okj_test_smtp', [$this, 'ajax_test_smtp']);
     }
 
     public function register_menus() {
-        $cap = 'wrpm_manage';
+        $cap = 'okj_manage';
 
         add_menu_page(
-            'WP Reseller Manage',
-            'WP Reseller Manage',
+            'OKJualin',
+            'OKJualin',
             $cap,
-            'wrpm-dashboard',
+            'okj-dashboard',
             [$this, 'view_dashboard'],
             'dashicons-blank',
             58
         );
 
-        add_submenu_page('wrpm-dashboard', 'Dashboard', 'Dashboard', $cap, 'wrpm-dashboard', [$this, 'view_dashboard']);
-        add_submenu_page('wrpm-dashboard', 'Daftar Harga Produk', 'Daftar Harga Produk', $cap, 'wrpm-product-prices', [$this, 'view_product_prices']);
-        add_submenu_page('wrpm-dashboard', 'Pembelian Produk', 'Pembelian Produk', $cap, 'wrpm-reseller-products', [$this, 'view_reseller_products']);
-        add_submenu_page('wrpm-dashboard', 'Customer', 'Customer', $cap, 'wrpm-customers', [$this, 'view_customers']);
-        add_submenu_page('wrpm-dashboard', 'Seller', 'Seller', $cap, 'wrpm-sellers', [$this, 'view_sellers']);
-        add_submenu_page('wrpm-dashboard', 'Produk Aktif', 'Produk Aktif', $cap, 'wrpm-active-products', [$this, 'view_active_products']);
-        add_submenu_page('wrpm-dashboard', 'Reminder', 'Reminder', $cap, 'wrpm-reminders', [$this, 'view_reminders']);
-        add_submenu_page('wrpm-dashboard', 'Shortlink Affiliate', 'Shortlink Affiliate', $cap, 'wrpm-shortlinks', [$this, 'view_shortlinks']);
-        add_submenu_page('wrpm-dashboard', 'Laporan', 'Laporan', 'wrpm_view_reports', 'wrpm-reports', [$this, 'view_reports']);
-        add_submenu_page('wrpm-dashboard', 'Logs', 'Logs', 'wrpm_view_logs', 'wrpm-logs', [$this, 'view_logs']);
-        add_submenu_page('wrpm-dashboard', 'Settings', 'Settings', 'wrpm_manage_settings', 'wrpm-settings', [$this, 'view_settings']);
+        add_submenu_page('okj-dashboard', 'Dashboard', 'Dashboard', $cap, 'okj-dashboard', [$this, 'view_dashboard']);
+        add_submenu_page('okj-dashboard', 'Daftar Harga Produk', 'Daftar Harga Produk', $cap, 'okj-product-prices', [$this, 'view_product_prices']);
+        add_submenu_page('okj-dashboard', 'Pembelian Produk', 'Pembelian Produk', $cap, 'okj-reseller-products', [$this, 'view_reseller_products']);
+        add_submenu_page('okj-dashboard', 'Customer', 'Customer', $cap, 'okj-customers', [$this, 'view_customers']);
+        add_submenu_page('okj-dashboard', 'Seller', 'Seller', $cap, 'okj-sellers', [$this, 'view_sellers']);
+        add_submenu_page('okj-dashboard', 'Produk Aktif', 'Produk Aktif', $cap, 'okj-active-products', [$this, 'view_active_products']);
+        add_submenu_page('okj-dashboard', 'Reminder', 'Reminder', $cap, 'okj-reminders', [$this, 'view_reminders']);
+        add_submenu_page('okj-dashboard', 'Shortlink Affiliate', 'Shortlink Affiliate', $cap, 'okj-shortlinks', [$this, 'view_shortlinks']);
+        add_submenu_page('okj-dashboard', 'Laporan', 'Laporan', 'okj_view_reports', 'okj-reports', [$this, 'view_reports']);
+        add_submenu_page('okj-dashboard', 'Logs', 'Logs', 'okj_view_logs', 'okj-logs', [$this, 'view_logs']);
+        add_submenu_page('okj-dashboard', 'Settings', 'Settings', 'okj_manage_settings', 'okj-settings', [$this, 'view_settings']);
     }
 
     public function enqueue_assets($hook) {
-        if (empty($_GET['page']) || strpos($_GET['page'], 'wrpm-') !== 0) return;
+        if (empty($_GET['page']) || strpos($_GET['page'], 'okj-') !== 0) return;
 
         // Modern Visuals & Chart libraries
         wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', [], '4.1.0');
@@ -74,8 +74,8 @@ class WRPM_Admin {
         // Load visual styling assets
         $css_ver = file_exists(dirname(dirname(__FILE__)) . '/assets/css/admin.css') ? filemtime(dirname(dirname(__FILE__)) . '/assets/css/admin.css') : time();
         $js_ver = file_exists(dirname(dirname(__FILE__)) . '/assets/js/admin.js') ? filemtime(dirname(dirname(__FILE__)) . '/assets/js/admin.js') : time();
-        wp_enqueue_style('wrpm-admin-css', plugins_url('assets/css/admin.css', dirname(__FILE__)), [], $css_ver);
-        wp_enqueue_script('wrpm-admin-js', plugins_url('assets/js/admin.js', dirname(__FILE__)), ['jquery', 'select2', 'chartjs'], $js_ver, true);
+        wp_enqueue_style('okj-admin-css', plugins_url('assets/css/admin.css', dirname(__FILE__)), [], $css_ver);
+        wp_enqueue_script('okj-admin-js', plugins_url('assets/js/admin.js', dirname(__FILE__)), ['jquery', 'select2', 'chartjs'], $js_ver, true);
     }
 
     // View router helper
@@ -90,16 +90,16 @@ class WRPM_Admin {
     // views implementation
     public function view_dashboard() {
         global $wpdb;
-        $total_reseller = (int)$wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('reseller_products'));
-        $total_active = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . WRPM_DB::get_table('active_products') . " WHERE status = %s", 'active'));
-        $total_expired = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . WRPM_DB::get_table('active_products') . " WHERE status = %s", 'expired'));
-        $total_income = (float)$wpdb->get_var("SELECT COALESCE(SUM(price),0) FROM " . WRPM_DB::get_table('active_products'));
+        $total_reseller = (int)$wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('reseller_products'));
+        $total_active = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . OKJ_DB::get_table('active_products') . " WHERE status = %s", 'active'));
+        $total_expired = (int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM " . OKJ_DB::get_table('active_products') . " WHERE status = %s", 'expired'));
+        $total_income = (float)$wpdb->get_var("SELECT COALESCE(SUM(price),0) FROM " . OKJ_DB::get_table('active_products'));
 
         $today = wp_date('Y-m-d');
         $in7 = wp_date('Y-m-d', strtotime('+7 days'));
 
         $soon = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM " . WRPM_DB::get_table('active_products') . " WHERE status = 'active' AND expires_at >= %s AND expires_at <= %s ORDER BY expires_at ASC LIMIT 10",
+            "SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE status = 'active' AND expires_at >= %s AND expires_at <= %s ORDER BY expires_at ASC LIMIT 10",
             $today, $in7
         ), ARRAY_A);
 
@@ -109,7 +109,7 @@ class WRPM_Admin {
             $m_val = date('Y-m', strtotime("-$i months"));
             $m_label = date('F Y', strtotime("-$i months"));
             $revenue = (float)$wpdb->get_var($wpdb->prepare(
-                "SELECT COALESCE(SUM(price),0) FROM " . WRPM_DB::get_table('active_products') . " WHERE start_date LIKE %s",
+                "SELECT COALESCE(SUM(price),0) FROM " . OKJ_DB::get_table('active_products') . " WHERE start_date LIKE %s",
                 $m_val . '%'
             ));
             $revenue_monthly[] = ['label' => $m_label, 'revenue' => $revenue];
@@ -132,11 +132,11 @@ class WRPM_Admin {
 
         if ($action === 'add' || $action === 'edit') {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('product_prices') . " WHERE id = %s", $id), ARRAY_A) : null;
-            $sellers = $wpdb->get_results("SELECT id, name FROM " . WRPM_DB::get_table('sellers') . " ORDER BY name ASC", ARRAY_A);
+            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('product_prices') . " WHERE id = %s", $id), ARRAY_A) : null;
+            $sellers = $wpdb->get_results("SELECT id, name FROM " . OKJ_DB::get_table('sellers') . " ORDER BY name ASC", ARRAY_A);
 
             // Fetch all unique tags from stored products
-            $all_tags_raw = $wpdb->get_col("SELECT DISTINCT tags FROM " . WRPM_DB::get_table('product_prices') . " WHERE tags IS NOT NULL AND tags != ''");
+            $all_tags_raw = $wpdb->get_col("SELECT DISTINCT tags FROM " . OKJ_DB::get_table('product_prices') . " WHERE tags IS NOT NULL AND tags != ''");
             $existing_tags = [];
             if (is_array($all_tags_raw)) {
                 foreach ($all_tags_raw as $tags_str) {
@@ -151,7 +151,7 @@ class WRPM_Admin {
             sort($existing_tags);
 
             // Fetch all unique categories from stored products
-            $existing_categories = $wpdb->get_col("SELECT DISTINCT category FROM " . WRPM_DB::get_table('product_prices') . " WHERE category IS NOT NULL AND category != ''");
+            $existing_categories = $wpdb->get_col("SELECT DISTINCT category FROM " . OKJ_DB::get_table('product_prices') . " WHERE category IS NOT NULL AND category != ''");
             if (!is_array($existing_categories)) {
                 $existing_categories = [];
             }
@@ -169,10 +169,10 @@ class WRPM_Admin {
             $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $offset = ($paged - 1) * $per_page;
 
-            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('product_prices'));
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('product_prices'));
             $total_pages = ceil($total_rows / $per_page);
 
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT p.*, s.name as seller_name, s.email as seller_email, s.phone as seller_phone, s.telegram as seller_telegram, s.whatsapp as seller_whatsapp FROM " . WRPM_DB::get_table('product_prices') . " p LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON p.seller_id = s.id ORDER BY p.name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT p.*, s.name as seller_name, s.email as seller_email, s.phone as seller_phone, s.telegram as seller_telegram, s.whatsapp as seller_whatsapp FROM " . OKJ_DB::get_table('product_prices') . " p LEFT JOIN " . OKJ_DB::get_table('sellers') . " s ON p.seller_id = s.id ORDER BY p.name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
             $this->render_template('product-prices', [
                 'action' => 'list', 
                 'rows' => $rows,
@@ -190,19 +190,19 @@ class WRPM_Admin {
 
         if ($action === 'add' || $action === 'edit') {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('reseller_products') . " WHERE id = %s", $id), ARRAY_A) : null;
-            $prices = $wpdb->get_results("SELECT p.id, p.name, p.duration_days, p.sale_price, p.seller_id, s.name as seller_name FROM " . WRPM_DB::get_table('product_prices') . " p LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON p.seller_id = s.id ORDER BY p.name ASC", ARRAY_A);
-            $sellers = $wpdb->get_results("SELECT id, name FROM " . WRPM_DB::get_table('sellers') . " ORDER BY name ASC", ARRAY_A);
+            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('reseller_products') . " WHERE id = %s", $id), ARRAY_A) : null;
+            $prices = $wpdb->get_results("SELECT p.id, p.name, p.duration_days, p.sale_price, p.seller_id, s.name as seller_name FROM " . OKJ_DB::get_table('product_prices') . " p LEFT JOIN " . OKJ_DB::get_table('sellers') . " s ON p.seller_id = s.id ORDER BY p.name ASC", ARRAY_A);
+            $sellers = $wpdb->get_results("SELECT id, name FROM " . OKJ_DB::get_table('sellers') . " ORDER BY name ASC", ARRAY_A);
             $this->render_template('reseller-products', ['action' => $action, 'row' => $row, 'prices' => $prices, 'sellers' => $sellers]);
         } else {
             $per_page = 15;
             $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $offset = ($paged - 1) * $per_page;
 
-            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('reseller_products'));
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('reseller_products'));
             $total_pages = ceil($total_rows / $per_page);
 
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT r.*, s.name as seller_name FROM " . WRPM_DB::get_table('reseller_products') . " r LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT r.*, s.name as seller_name FROM " . OKJ_DB::get_table('reseller_products') . " r LEFT JOIN " . OKJ_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
             $this->render_template('reseller-products', [
                 'action' => 'list', 
                 'rows' => $rows,
@@ -220,17 +220,17 @@ class WRPM_Admin {
 
         if ($action === 'add' || $action === 'edit') {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('customers') . " WHERE id = %s", $id), ARRAY_A) : null;
+            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('customers') . " WHERE id = %s", $id), ARRAY_A) : null;
             $this->render_template('customers', ['action' => $action, 'row' => $row]);
         } else {
             $per_page = 15;
             $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $offset = ($paged - 1) * $per_page;
 
-            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('customers'));
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('customers'));
             $total_pages = ceil($total_rows / $per_page);
 
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('customers') . " ORDER BY name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('customers') . " ORDER BY name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
             $this->render_template('customers', [
                 'action' => 'list', 
                 'rows' => $rows,
@@ -248,17 +248,17 @@ class WRPM_Admin {
 
         if ($action === 'add' || $action === 'edit') {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('sellers') . " WHERE id = %s", $id), ARRAY_A) : null;
+            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('sellers') . " WHERE id = %s", $id), ARRAY_A) : null;
             $this->render_template('sellers', ['action' => $action, 'row' => $row]);
         } else {
             $per_page = 15;
             $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $offset = ($paged - 1) * $per_page;
 
-            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('sellers'));
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('sellers'));
             $total_pages = ceil($total_rows / $per_page);
 
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('sellers') . " ORDER BY name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('sellers') . " ORDER BY name ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
             $this->render_template('sellers', [
                 'action' => 'list', 
                 'rows' => $rows,
@@ -276,19 +276,19 @@ class WRPM_Admin {
 
         if ($action === 'add' || $action === 'edit') {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A) : null;
-            $customers = $wpdb->get_results("SELECT id, name FROM " . WRPM_DB::get_table('customers') . " ORDER BY name ASC", ARRAY_A);
-            $resellers = $wpdb->get_results("SELECT r.id, r.product_name, r.duration_days, r.price, r.purchase_date, s.name as seller_name, (SELECT COUNT(*) FROM " . WRPM_DB::get_table('active_products') . " WHERE reseller_product_id = r.id) as is_used FROM " . WRPM_DB::get_table('reseller_products') . " r LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC", ARRAY_A);
+            $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A) : null;
+            $customers = $wpdb->get_results("SELECT id, name FROM " . OKJ_DB::get_table('customers') . " ORDER BY name ASC", ARRAY_A);
+            $resellers = $wpdb->get_results("SELECT r.id, r.product_name, r.duration_days, r.price, r.purchase_date, s.name as seller_name, (SELECT COUNT(*) FROM " . OKJ_DB::get_table('active_products') . " WHERE reseller_product_id = r.id) as is_used FROM " . OKJ_DB::get_table('reseller_products') . " r LEFT JOIN " . OKJ_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC", ARRAY_A);
             $this->render_template('active-products', ['action' => $action, 'row' => $row, 'customers' => $customers, 'resellers' => $resellers]);
         } else {
             $per_page = 15;
             $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $offset = ($paged - 1) * $per_page;
 
-            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('active_products'));
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('active_products'));
             $total_pages = ceil($total_rows / $per_page);
 
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp FROM " . WRPM_DB::get_table('active_products') . " a LEFT JOIN " . WRPM_DB::get_table('customers') . " c ON a.customer_id = c.id ORDER BY a.expires_at ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp FROM " . OKJ_DB::get_table('active_products') . " a LEFT JOIN " . OKJ_DB::get_table('customers') . " c ON a.customer_id = c.id ORDER BY a.expires_at ASC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
             $this->render_template('active-products', [
                 'action' => 'list', 
                 'rows' => $rows,
@@ -302,7 +302,7 @@ class WRPM_Admin {
 
     public function view_reminders() {
         global $wpdb;
-        $rows = $wpdb->get_results("SELECT r.*, a.product_label, c.name as customer_name FROM " . WRPM_DB::get_table('active_reminders') . " r INNER JOIN " . WRPM_DB::get_table('active_products') . " a ON r.active_product_id = a.id INNER JOIN " . WRPM_DB::get_table('customers') . " c ON r.customer_id = c.id ORDER BY r.reminder_date ASC", ARRAY_A);
+        $rows = $wpdb->get_results("SELECT r.*, a.product_label, c.name as customer_name FROM " . OKJ_DB::get_table('active_reminders') . " r INNER JOIN " . OKJ_DB::get_table('active_products') . " a ON r.active_product_id = a.id INNER JOIN " . OKJ_DB::get_table('customers') . " c ON r.customer_id = c.id ORDER BY r.reminder_date ASC", ARRAY_A);
         $this->render_template('reminders', ['rows' => $rows]);
     }
 
@@ -313,7 +313,7 @@ class WRPM_Admin {
 
         $row = null;
         if (($action === 'edit' || $action === 'add') && !empty($id)) {
-            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('shortlinks') . " WHERE id = %s", $id), ARRAY_A);
+            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('shortlinks') . " WHERE id = %s", $id), ARRAY_A);
         }
 
         if ($action === 'add' || $action === 'edit') {
@@ -323,10 +323,10 @@ class WRPM_Admin {
             $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $offset = ($paged - 1) * $per_page;
 
-            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . WRPM_DB::get_table('shortlinks'));
+            $total_rows = $wpdb->get_var("SELECT COUNT(*) FROM " . OKJ_DB::get_table('shortlinks'));
             $total_pages = ceil($total_rows / $per_page);
 
-            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('shortlinks') . " ORDER BY created_at DESC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('shortlinks') . " ORDER BY created_at DESC LIMIT %d OFFSET %d", $per_page, $offset), ARRAY_A);
             
             $this->render_template('shortlinks', [
                 'action' => 'list',
@@ -341,25 +341,25 @@ class WRPM_Admin {
 
     public function view_reports() {
         global $wpdb;
-        $sales = $wpdb->get_results("SELECT start_date, price FROM " . WRPM_DB::get_table('active_products') . " WHERE payment_status = 'paid'", ARRAY_A);
+        $sales = $wpdb->get_results("SELECT start_date, price FROM " . OKJ_DB::get_table('active_products') . " WHERE payment_status = 'paid'", ARRAY_A);
         $this->render_template('reports', ['sales' => $sales]);
     }
 
     public function view_logs() {
         global $wpdb;
-        $rows = $wpdb->get_results("SELECT * FROM " . WRPM_DB::get_table('logs') . " ORDER BY happened_at DESC LIMIT 200", ARRAY_A);
+        $rows = $wpdb->get_results("SELECT * FROM " . OKJ_DB::get_table('logs') . " ORDER BY happened_at DESC LIMIT 200", ARRAY_A);
         $this->render_template('logs', ['rows' => $rows]);
     }
 
     public function view_settings() {
-        $settings = get_option('wrpm_settings_v1', []);
+        $settings = get_option('okj_settings_v1', []);
         $this->render_template('settings', ['settings' => $settings]);
     }
 
     // POST action processors
     public function save_product_price() {
-        check_admin_referer('wrpm_save_price');
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_save_price');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
@@ -382,12 +382,12 @@ class WRPM_Admin {
         ];
 
         if ($is_edit) {
-            $wpdb->update(WRPM_DB::get_table('product_prices'), $data, ['id' => $_POST['id']]);
-            WRPM_Reseller_Manager::log('update', 'product_price', $id, "Updated product price: " . $data['name']);
+            $wpdb->update(OKJ_DB::get_table('product_prices'), $data, ['id' => $_POST['id']]);
+            OKJ_Reseller_Manager::log('update', 'product_price', $id, "Updated product price: " . $data['name']);
         } else {
             $data['created_at'] = current_time('mysql');
-            $wpdb->insert(WRPM_DB::get_table('product_prices'), $data);
-            WRPM_Reseller_Manager::log('create', 'product_price', $id, "Created product price: " . $data['name']);
+            $wpdb->insert(OKJ_DB::get_table('product_prices'), $data);
+            OKJ_Reseller_Manager::log('create', 'product_price', $id, "Created product price: " . $data['name']);
         }
 
         if (!empty($_POST['affiliate_url']) && !empty($_POST['auto_create_shortlink'])) {
@@ -396,7 +396,7 @@ class WRPM_Admin {
                 $short_key = substr(md5($id), 0, 8);
             }
             
-            $t_shortlinks = WRPM_DB::get_table('shortlinks');
+            $t_shortlinks = OKJ_DB::get_table('shortlinks');
             $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$t_shortlinks} WHERE short_key = %s", $short_key), ARRAY_A);
             
             if ($existing) {
@@ -418,26 +418,26 @@ class WRPM_Admin {
             }
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-product-prices'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-product-prices'));
         exit;
     }
 
     public function delete_product_price() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_delete_price_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_delete_price_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
-        $wpdb->delete(WRPM_DB::get_table('product_prices'), ['id' => $id]);
-        WRPM_Reseller_Manager::log('delete', 'product_price', $id, "Deleted product price ID: " . $id);
+        $wpdb->delete(OKJ_DB::get_table('product_prices'), ['id' => $id]);
+        OKJ_Reseller_Manager::log('delete', 'product_price', $id, "Deleted product price ID: " . $id);
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-product-prices'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-product-prices'));
         exit;
     }
 
     public function save_seller() {
-        check_admin_referer('wrpm_save_seller');
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_save_seller');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
@@ -455,34 +455,34 @@ class WRPM_Admin {
         ];
 
         if ($is_edit) {
-            $wpdb->update(WRPM_DB::get_table('sellers'), $data, ['id' => $_POST['id']]);
-            WRPM_Reseller_Manager::log('update', 'seller', $id, "Updated seller: " . $data['name']);
+            $wpdb->update(OKJ_DB::get_table('sellers'), $data, ['id' => $_POST['id']]);
+            OKJ_Reseller_Manager::log('update', 'seller', $id, "Updated seller: " . $data['name']);
         } else {
             $data['created_at'] = current_time('mysql');
-            $wpdb->insert(WRPM_DB::get_table('sellers'), $data);
-            WRPM_Reseller_Manager::log('create', 'seller', $id, "Created seller: " . $data['name']);
+            $wpdb->insert(OKJ_DB::get_table('sellers'), $data);
+            OKJ_Reseller_Manager::log('create', 'seller', $id, "Created seller: " . $data['name']);
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-sellers'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-sellers'));
         exit;
     }
 
     public function delete_seller() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_delete_seller_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_delete_seller_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
-        $wpdb->delete(WRPM_DB::get_table('sellers'), ['id' => $id]);
-        WRPM_Reseller_Manager::log('delete', 'seller', $id, "Deleted seller ID: " . $id);
+        $wpdb->delete(OKJ_DB::get_table('sellers'), ['id' => $id]);
+        OKJ_Reseller_Manager::log('delete', 'seller', $id, "Deleted seller ID: " . $id);
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-sellers'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-sellers'));
         exit;
     }
 
     public function save_customer() {
-        check_admin_referer('wrpm_save_customer');
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_save_customer');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
@@ -500,34 +500,34 @@ class WRPM_Admin {
         ];
 
         if ($is_edit) {
-            $wpdb->update(WRPM_DB::get_table('customers'), $data, ['id' => $_POST['id']]);
-            WRPM_Reseller_Manager::log('update', 'customer', $id, "Updated customer: " . $data['name']);
+            $wpdb->update(OKJ_DB::get_table('customers'), $data, ['id' => $_POST['id']]);
+            OKJ_Reseller_Manager::log('update', 'customer', $id, "Updated customer: " . $data['name']);
         } else {
             $data['created_at'] = current_time('mysql');
-            $wpdb->insert(WRPM_DB::get_table('customers'), $data);
-            WRPM_Reseller_Manager::log('create', 'customer', $id, "Created customer: " . $data['name']);
+            $wpdb->insert(OKJ_DB::get_table('customers'), $data);
+            OKJ_Reseller_Manager::log('create', 'customer', $id, "Created customer: " . $data['name']);
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-customers'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-customers'));
         exit;
     }
 
     public function delete_customer() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_delete_customer_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_delete_customer_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
-        $wpdb->delete(WRPM_DB::get_table('customers'), ['id' => $id]);
-        WRPM_Reseller_Manager::log('delete', 'customer', $id, "Deleted customer ID: " . $id);
+        $wpdb->delete(OKJ_DB::get_table('customers'), ['id' => $id]);
+        OKJ_Reseller_Manager::log('delete', 'customer', $id, "Deleted customer ID: " . $id);
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-customers'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-customers'));
         exit;
     }
 
     public function save_shortlink() {
-        check_admin_referer('wrpm_save_shortlink');
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_save_shortlink');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
@@ -546,7 +546,7 @@ class WRPM_Admin {
             'updated_at' => current_time('mysql'),
         ];
 
-        $table = WRPM_DB::get_table('shortlinks');
+        $table = OKJ_DB::get_table('shortlinks');
 
         $conflict = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$table} WHERE short_key = %s AND id != %s", $short_key, $id));
         if ($conflict) {
@@ -555,41 +555,41 @@ class WRPM_Admin {
 
         if ($is_edit) {
             $wpdb->update($table, $data, ['id' => $_POST['id']]);
-            WRPM_Reseller_Manager::log('update', 'shortlink', $id, "Updated shortlink: " . $data['title']);
+            OKJ_Reseller_Manager::log('update', 'shortlink', $id, "Updated shortlink: " . $data['title']);
         } else {
             $data['clicks'] = 0;
             $data['created_at'] = current_time('mysql');
             $wpdb->insert($table, $data);
-            WRPM_Reseller_Manager::log('create', 'shortlink', $id, "Created shortlink: " . $data['title']);
+            OKJ_Reseller_Manager::log('create', 'shortlink', $id, "Created shortlink: " . $data['title']);
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-shortlinks'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-shortlinks'));
         exit;
     }
 
     public function delete_shortlink() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_delete_shortlink_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_delete_shortlink_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
-        $wpdb->delete(WRPM_DB::get_table('shortlinks'), ['id' => $id]);
-        WRPM_Reseller_Manager::log('delete', 'shortlink', $id, "Deleted shortlink ID: " . $id);
+        $wpdb->delete(OKJ_DB::get_table('shortlinks'), ['id' => $id]);
+        OKJ_Reseller_Manager::log('delete', 'shortlink', $id, "Deleted shortlink ID: " . $id);
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-shortlinks'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-shortlinks'));
         exit;
     }
 
     public function save_reseller_product() {
-        check_admin_referer('wrpm_save_reseller_product');
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_save_reseller_product');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
         $is_edit = !empty($_POST['id']);
 
         $price_id = sanitize_text_field($_POST['price_id']);
-        $price_row = $wpdb->get_row($wpdb->prepare("SELECT name, duration_days FROM " . WRPM_DB::get_table('product_prices') . " WHERE id = %s", $price_id), ARRAY_A);
+        $price_row = $wpdb->get_row($wpdb->prepare("SELECT name, duration_days FROM " . OKJ_DB::get_table('product_prices') . " WHERE id = %s", $price_id), ARRAY_A);
 
         $product_name = $price_row ? $price_row['name'] : '';
         $duration_days = isset($_POST['duration_days']) ? (int)$_POST['duration_days'] : ($price_row ? (int)$price_row['duration_days'] : 0);
@@ -629,41 +629,41 @@ class WRPM_Admin {
             }
         } elseif ($is_edit) {
             // Keep existing attachment
-            $old_row = $wpdb->get_row($wpdb->prepare("SELECT payment_attachments FROM " . WRPM_DB::get_table('reseller_products') . " WHERE id = %s", $id), ARRAY_A);
+            $old_row = $wpdb->get_row($wpdb->prepare("SELECT payment_attachments FROM " . OKJ_DB::get_table('reseller_products') . " WHERE id = %s", $id), ARRAY_A);
             if ($old_row) {
                 $data['payment_attachments'] = $old_row['payment_attachments'];
             }
         }
 
         if ($is_edit) {
-            $wpdb->update(WRPM_DB::get_table('reseller_products'), $data, ['id' => $_POST['id']]);
-            WRPM_Reseller_Manager::log('update', 'reseller_product', $id, "Updated reseller product: " . $data['product_name']);
+            $wpdb->update(OKJ_DB::get_table('reseller_products'), $data, ['id' => $_POST['id']]);
+            OKJ_Reseller_Manager::log('update', 'reseller_product', $id, "Updated reseller product: " . $data['product_name']);
         } else {
             $data['created_at'] = current_time('mysql');
-            $wpdb->insert(WRPM_DB::get_table('reseller_products'), $data);
-            WRPM_Reseller_Manager::log('create', 'reseller_product', $id, "Created reseller product: " . $data['product_name']);
+            $wpdb->insert(OKJ_DB::get_table('reseller_products'), $data);
+            OKJ_Reseller_Manager::log('create', 'reseller_product', $id, "Created reseller product: " . $data['product_name']);
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-reseller-products'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-reseller-products'));
         exit;
     }
 
     public function delete_reseller_product() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_delete_reseller_product_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_delete_reseller_product_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
-        $wpdb->delete(WRPM_DB::get_table('reseller_products'), ['id' => $id]);
-        WRPM_Reseller_Manager::log('delete', 'reseller_product', $id, "Deleted reseller product ID: " . $id);
+        $wpdb->delete(OKJ_DB::get_table('reseller_products'), ['id' => $id]);
+        OKJ_Reseller_Manager::log('delete', 'reseller_product', $id, "Deleted reseller product ID: " . $id);
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-reseller-products'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-reseller-products'));
         exit;
     }
 
     public function save_active_product() {
-        check_admin_referer('wrpm_save_active_product');
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_save_active_product');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $id = !empty($_POST['id']) ? sanitize_text_field($_POST['id']) : wp_generate_uuid4();
@@ -672,8 +672,8 @@ class WRPM_Admin {
         $reseller_product_id = sanitize_text_field($_POST['reseller_product_id']);
         $customer_id = sanitize_text_field($_POST['customer_id']);
 
-        $rp = $wpdb->get_row($wpdb->prepare("SELECT product_name, duration_days FROM " . WRPM_DB::get_table('reseller_products') . " WHERE id = %s", $reseller_product_id), ARRAY_A);
-        $cust = $wpdb->get_row($wpdb->prepare("SELECT name, phone, telegram, whatsapp, email FROM " . WRPM_DB::get_table('customers') . " WHERE id = %s", $customer_id), ARRAY_A);
+        $rp = $wpdb->get_row($wpdb->prepare("SELECT product_name, duration_days FROM " . OKJ_DB::get_table('reseller_products') . " WHERE id = %s", $reseller_product_id), ARRAY_A);
+        $cust = $wpdb->get_row($wpdb->prepare("SELECT name, phone, telegram, whatsapp, email FROM " . OKJ_DB::get_table('customers') . " WHERE id = %s", $customer_id), ARRAY_A);
 
         $start_date = sanitize_text_field($_POST['start_date']);
         $duration = $rp ? (int)$rp['duration_days'] : 30;
@@ -723,48 +723,48 @@ class WRPM_Admin {
             }
         } elseif ($is_edit) {
             // Keep existing attachment
-            $old_row = $wpdb->get_row($wpdb->prepare("SELECT payment_attachments FROM " . WRPM_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A);
+            $old_row = $wpdb->get_row($wpdb->prepare("SELECT payment_attachments FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A);
             if ($old_row) {
                 $data['payment_attachments'] = $old_row['payment_attachments'];
             }
         }
 
         if ($is_edit) {
-            $wpdb->update(WRPM_DB::get_table('active_products'), $data, ['id' => $_POST['id']]);
-            WRPM_Reseller_Manager::log('update', 'active_product', $id, "Updated active product: " . $data['product_label']);
+            $wpdb->update(OKJ_DB::get_table('active_products'), $data, ['id' => $_POST['id']]);
+            OKJ_Reseller_Manager::log('update', 'active_product', $id, "Updated active product: " . $data['product_label']);
         } else {
             $data['created_at'] = current_time('mysql');
-            $wpdb->insert(WRPM_DB::get_table('active_products'), $data);
-            WRPM_Reseller_Manager::log('create', 'active_product', $id, "Created active product: " . $data['product_label']);
+            $wpdb->insert(OKJ_DB::get_table('active_products'), $data);
+            OKJ_Reseller_Manager::log('create', 'active_product', $id, "Created active product: " . $data['product_label']);
         }
 
         // Sync reminders
-        $saved_row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A);
+        $saved_row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A);
         if ($saved_row) {
-            WRPM_Reseller_Manager::sync_reminders($saved_row);
+            OKJ_Reseller_Manager::sync_reminders($saved_row);
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-active-products'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-active-products'));
         exit;
     }
 
     public function delete_active_product() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_delete_active_product_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_delete_active_product_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
-        $wpdb->delete(WRPM_DB::get_table('active_products'), ['id' => $id]);
-        $wpdb->delete(WRPM_DB::get_table('active_reminders'), ['active_product_id' => $id]);
-        WRPM_Reseller_Manager::log('delete', 'active_product', $id, "Deleted active product & reminders ID: " . $id);
+        $wpdb->delete(OKJ_DB::get_table('active_products'), ['id' => $id]);
+        $wpdb->delete(OKJ_DB::get_table('active_reminders'), ['active_product_id' => $id]);
+        OKJ_Reseller_Manager::log('delete', 'active_product', $id, "Deleted active product & reminders ID: " . $id);
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-active-products'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-active-products'));
         exit;
     }
 
     public function save_settings() {
-        check_admin_referer('wrpm_save_settings');
-        if (!current_user_can('wrpm_manage_settings')) wp_die('Forbidden');
+        check_admin_referer('okj_save_settings');
+        if (!current_user_can('okj_manage_settings')) wp_die('Forbidden');
 
         $offsets_raw = sanitize_text_field($_POST['reminder_offsets']);
         $offsets_arr = array_filter(array_map('intval', explode(',', $offsets_raw)));
@@ -804,46 +804,46 @@ class WRPM_Admin {
             'github_token' => sanitize_text_field($_POST['github_token']),
         ];
 
-        update_option('wrpm_settings_v1', $data);
-        WRPM_Reseller_Manager::log('save_settings', 'settings', '', 'Updated plugin settings configuration');
+        update_option('okj_settings_v1', $data);
+        OKJ_Reseller_Manager::log('save_settings', 'settings', '', 'Updated plugin settings configuration');
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-settings'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-settings'));
         exit;
     }
 
     public function backup_data() {
-        check_admin_referer('wrpm_backup_data');
-        WRPM_Backup::export_json();
+        check_admin_referer('okj_backup_data');
+        OKJ_Backup::export_json();
     }
 
     public function restore_data() {
-        check_admin_referer('wrpm_restore_data');
-        if (!current_user_can('wrpm_manage_settings')) wp_die('Forbidden');
+        check_admin_referer('okj_restore_data');
+        if (!current_user_can('okj_manage_settings')) wp_die('Forbidden');
 
         if (!empty($_FILES['restore_file']['tmp_name'])) {
-            $res = WRPM_Backup::import_json($_FILES['restore_file']['tmp_name']);
+            $res = OKJ_Backup::import_json($_FILES['restore_file']['tmp_name']);
             $msg = $res['ok'] ? 'Database & settings successfully restored' : 'Restore failed: ' . $res['error'];
         } else {
             $msg = 'Please upload a backup JSON file first';
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-settings&msg=' . urlencode($msg)));
+        wp_safe_redirect(admin_url('admin.php?page=okj-settings&msg=' . urlencode($msg)));
         exit;
     }
 
     public function download_invoice_pdf() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_invoice_pdf_' . $id);
+        check_admin_referer('okj_invoice_pdf_' . $id);
 
         global $wpdb;
-        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A);
+        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A);
         if (!$row) wp_die('Active product not found');
 
-        $settings = get_option('wrpm_settings_v1', []);
-        $pdf_gen = new WRPM_PDF_Invoice();
+        $settings = get_option('okj_settings_v1', []);
+        $pdf_gen = new OKJ_PDF_Invoice();
         $pdf_data = $pdf_gen->generate_invoice($row, $settings);
 
-        WRPM_Reseller_Manager::log('download_invoice', 'active_product', $id, "Downloaded invoice PDF: " . $row['product_label']);
+        OKJ_Reseller_Manager::log('download_invoice', 'active_product', $id, "Downloaded invoice PDF: " . $row['product_label']);
 
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="invoice-' . $id . '.pdf"');
@@ -854,23 +854,23 @@ class WRPM_Admin {
 
     public function send_reminder_manual() {
         $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
-        check_admin_referer('wrpm_send_reminder_' . $id);
-        if (!current_user_can('wrpm_manage')) wp_die('Forbidden');
+        check_admin_referer('okj_send_reminder_' . $id);
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
 
         global $wpdb;
         $r = $wpdb->get_row($wpdb->prepare(
             "SELECT r.*, a.product_label, a.start_date, a.duration_days, a.notes, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp, a.expires_at, a.price
-             FROM " . WRPM_DB::get_table('active_reminders') . " r
-             INNER JOIN " . WRPM_DB::get_table('active_products') . " a ON r.active_product_id = a.id
-             INNER JOIN " . WRPM_DB::get_table('customers') . " c ON r.customer_id = c.id
+             FROM " . OKJ_DB::get_table('active_reminders') . " r
+             INNER JOIN " . OKJ_DB::get_table('active_products') . " a ON r.active_product_id = a.id
+             INNER JOIN " . OKJ_DB::get_table('customers') . " c ON r.customer_id = c.id
              WHERE r.id = %s",
             $id
         ), ARRAY_A);
 
         if (!$r) wp_die('Reminder record not found');
 
-        $notifier = new WRPM_Notifier();
-        $settings = get_option('wrpm_settings_v1', []);
+        $notifier = new OKJ_Notifier();
+        $settings = get_option('okj_settings_v1', []);
 
         $vars = [
             'customer_name' => $r['customer_name'],
@@ -885,7 +885,7 @@ class WRPM_Admin {
             'start_date' => date_i18n(get_option('date_format'), strtotime($r['start_date'])),
             'duration_days' => $r['duration_days'],
             'notes' => $r['notes'] ?: '-',
-            'invoice_url' => admin_url('admin-post.php?action=wrpm_invoice_pdf&id=' . $r['active_product_id']),
+            'invoice_url' => admin_url('admin-post.php?action=okj_invoice_pdf&id=' . $r['active_product_id']),
             'company_name' => !empty($settings['pdf_company_name']) ? $settings['pdf_company_name'] : get_bloginfo('name'),
             'company_address' => !empty($settings['pdf_company_address']) ? $settings['pdf_company_address'] : '',
             'company_phone' => !empty($settings['pdf_company_phone']) ? $settings['pdf_company_phone'] : '',
@@ -932,7 +932,7 @@ class WRPM_Admin {
 
         $now = current_time('mysql');
         if (!empty($sent_channels)) {
-            $wpdb->update(WRPM_DB::get_table('active_reminders'), [
+            $wpdb->update(OKJ_DB::get_table('active_reminders'), [
                 'status' => 'sent',
                 'sent_via' => implode(',', $sent_channels),
                 'sent_at' => $now,
@@ -940,22 +940,22 @@ class WRPM_Admin {
                 'updated_at' => $now,
             ], ['id' => $r['id']]);
 
-            WRPM_Reseller_Manager::log('send_reminder', 'reminder', $r['id'], "Manual reminder triggered successfully via " . implode(',', $sent_channels));
+            OKJ_Reseller_Manager::log('send_reminder', 'reminder', $r['id'], "Manual reminder triggered successfully via " . implode(',', $sent_channels));
         } else {
-            $wpdb->update(WRPM_DB::get_table('active_reminders'), [
+            $wpdb->update(OKJ_DB::get_table('active_reminders'), [
                 'last_error' => implode('; ', $error_log),
                 'updated_at' => $now,
             ], ['id' => $r['id']]);
 
-            WRPM_Reseller_Manager::log('send_reminder_fail', 'reminder', $r['id'], "Manual reminder failed: " . implode('; ', $error_log));
+            OKJ_Reseller_Manager::log('send_reminder_fail', 'reminder', $r['id'], "Manual reminder failed: " . implode('; ', $error_log));
         }
 
-        wp_safe_redirect(admin_url('admin.php?page=wrpm-reminders'));
+        wp_safe_redirect(admin_url('admin.php?page=okj-reminders'));
         exit;
     }
 
     public function quick_add_seller() {
-        if (!current_user_can('wrpm_manage')) {
+        if (!current_user_can('okj_manage')) {
             wp_send_json_error(['message' => 'Forbidden']);
         }
 
@@ -977,9 +977,9 @@ class WRPM_Admin {
             'updated_at' => current_time('mysql'),
         ];
 
-        $inserted = $wpdb->insert(WRPM_DB::get_table('sellers'), $data);
+        $inserted = $wpdb->insert(OKJ_DB::get_table('sellers'), $data);
         if ($inserted) {
-            WRPM_Reseller_Manager::log('create', 'seller', $id, "Quick created seller: " . $name);
+            OKJ_Reseller_Manager::log('create', 'seller', $id, "Quick created seller: " . $name);
             wp_send_json_success([
                 'id' => $id,
                 'name' => $name
@@ -990,7 +990,7 @@ class WRPM_Admin {
     }
 
     public function quick_add_customer() {
-        if (!current_user_can('wrpm_manage')) {
+        if (!current_user_can('okj_manage')) {
             wp_send_json_error(['message' => 'Forbidden']);
         }
 
@@ -1012,9 +1012,9 @@ class WRPM_Admin {
             'updated_at' => current_time('mysql'),
         ];
 
-        $inserted = $wpdb->insert(WRPM_DB::get_table('customers'), $data);
+        $inserted = $wpdb->insert(OKJ_DB::get_table('customers'), $data);
         if ($inserted) {
-            WRPM_Reseller_Manager::log('create', 'customer', $id, "Quick created customer: " . $name);
+            OKJ_Reseller_Manager::log('create', 'customer', $id, "Quick created customer: " . $name);
             wp_send_json_success([
                 'id' => $id,
                 'name' => $name
@@ -1025,7 +1025,7 @@ class WRPM_Admin {
      }
 
     public function ajax_test_waha() {
-        if (!current_user_can('wrpm_manage')) {
+        if (!current_user_can('okj_manage')) {
             wp_send_json_error(['message' => 'Forbidden']);
         }
 
@@ -1060,7 +1060,7 @@ class WRPM_Admin {
             $headers['X-Api-Key'] = $token;
         }
 
-        $message = "Halo! Ini adalah pesan uji coba dari WP Reseller Manage Anda. Koneksi berhasil! 🚀";
+        $message = "Halo! Ini adalah pesan uji coba dari OKJualin Anda. Koneksi berhasil! 🚀";
 
         $resp = wp_remote_post($url, [
             'timeout' => 20,
@@ -1085,7 +1085,7 @@ class WRPM_Admin {
     }
 
     public function ajax_test_telegram() {
-        if (!current_user_can('wrpm_manage')) {
+        if (!current_user_can('okj_manage')) {
             wp_send_json_error(['message' => 'Forbidden']);
         }
 
@@ -1100,7 +1100,7 @@ class WRPM_Admin {
         }
 
         $url = 'https://api.telegram.org/bot' . rawurlencode($token) . '/sendMessage';
-        $message = "Halo! Ini adalah pesan uji coba dari WP Reseller Manage Anda. Koneksi berhasil! 🚀";
+        $message = "Halo! Ini adalah pesan uji coba dari OKJualin Anda. Koneksi berhasil! 🚀";
 
         $resp = wp_remote_post($url, [
             'timeout' => 15,
@@ -1126,7 +1126,7 @@ class WRPM_Admin {
     }
 
     public function ajax_test_smtp() {
-        if (!current_user_can('wrpm_manage')) {
+        if (!current_user_can('okj_manage')) {
             wp_send_json_error(['message' => 'Forbidden']);
         }
 
@@ -1159,8 +1159,8 @@ class WRPM_Admin {
 
         add_action('phpmailer_init', $temp_hook, 999);
         
-        $subject = 'WP Reseller Manage - Test SMTP Connection';
-        $body = "Halo!\n\nIni adalah email uji coba untuk memverifikasi pengaturan SMTP Anda pada plugin WP Reseller Manage.\n\nKoneksi SMTP Anda berhasil terintegrasi dengan sempurna! 🚀";
+        $subject = 'OKJualin - Test SMTP Connection';
+        $body = "Halo!\n\nIni adalah email uji coba untuk memverifikasi pengaturan SMTP Anda pada plugin OKJualin.\n\nKoneksi SMTP Anda berhasil terintegrasi dengan sempurna! 🚀";
         $headers = ['Content-Type: text/plain; charset=UTF-8'];
 
         $ok = wp_mail($from_email, $subject, $body, $headers);

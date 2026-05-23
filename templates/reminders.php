@@ -1,29 +1,29 @@
-<?php if (!defined('ABSPATH')) { exit; } ?>
-<div class="wrpm-wrap">
-    <div class="wrpm-header">
+﻿<?php if (!defined('ABSPATH')) { exit; } ?>
+<div class="okj-wrap">
+    <div class="okj-header">
         <div>
             <h1>Antrean Pengiriman Reminder</h1>
-            <p class="wrpm-subtitle">Daftar jadwal pengiriman reminder otomatis (H-7, H-3, H-1) ke pelanggan beserta log status pengiriman.</p>
+            <p class="okj-subtitle">Daftar jadwal pengiriman reminder otomatis (H-7, H-3, H-1) ke pelanggan beserta log status pengiriman.</p>
         </div>
     </div>
 
-    <div class="wrpm-card wrpm-mt-2">
-        <div class="wrpm-card-body">
+    <div class="okj-card okj-mt-2">
+        <div class="okj-card-body">
             <?php if (empty($rows)): ?>
-                <div class="wrpm-empty-state">
+                <div class="okj-empty-state">
                     <span class="dashicons dashicons-calendar"></span>
                     <p>Antrean reminder masih kosong. Pastikan Anda telah membuat data pelacakan produk aktif.</p>
                 </div>
             <?php else: ?>
                 <!-- Search & Filters Block -->
-                <div class="wrpm-filter-bar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; background: rgba(248, 250, 252, 0.8); border: 1px solid #e2e8f0; padding: 18px; border-radius: 12px;">
+                <div class="okj-filter-bar" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; background: rgba(248, 250, 252, 0.8); border: 1px solid #e2e8f0; padding: 18px; border-radius: 12px;">
                     <div>
-                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Cari Reminder</label>
-                        <input type="text" id="wrpm-reminder-search" class="wrpm-input" placeholder="Cari customer, produk..." style="width: 100%;" />
+                        <label class="okj-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Cari Reminder</label>
+                        <input type="text" id="okj-reminder-search" class="okj-input" placeholder="Cari customer, produk..." style="width: 100%;" />
                     </div>
                     <div>
-                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Customer</label>
-                        <select id="wrpm-reminder-filter-customer" class="wrpm-select" style="width: 100%;">
+                        <label class="okj-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Customer</label>
+                        <select id="okj-reminder-filter-customer" class="okj-select" style="width: 100%;">
                             <option value="">-- Semua Customer --</option>
                             <?php 
                             $unique_customers = array_unique(array_column($rows, 'customer_name'));
@@ -34,8 +34,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Produk</label>
-                        <select id="wrpm-reminder-filter-product" class="wrpm-select" style="width: 100%;">
+                        <label class="okj-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Produk</label>
+                        <select id="okj-reminder-filter-product" class="okj-select" style="width: 100%;">
                             <option value="">-- Semua Produk --</option>
                             <?php 
                             $unique_products = array_unique(array_column($rows, 'product_label'));
@@ -46,8 +46,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Milestone</label>
-                        <select id="wrpm-reminder-filter-milestone" class="wrpm-select" style="width: 100%;">
+                        <label class="okj-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Milestone</label>
+                        <select id="okj-reminder-filter-milestone" class="okj-select" style="width: 100%;">
                             <option value="">-- Semua Milestone --</option>
                             <option value="H-7">H-7</option>
                             <option value="H-3">H-3</option>
@@ -55,8 +55,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="wrpm-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Status Kirim</label>
-                        <select id="wrpm-reminder-filter-status" class="wrpm-select" style="width: 100%;">
+                        <label class="okj-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #475569;">Filter Status Kirim</label>
+                        <select id="okj-reminder-filter-status" class="okj-select" style="width: 100%;">
                             <option value="">-- Semua Status --</option>
                             <option value="pending">Pending</option>
                             <option value="sent">Sent</option>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
 
-                <table class="wrpm-table">
+                <table class="okj-table">
                     <thead>
                         <tr>
                             <th>Customer</th>
@@ -80,7 +80,7 @@
                     </thead>
                     <tbody>
                         <?php foreach ($rows as $r): ?>
-                            <tr class="wrpm-reminder-row" 
+                            <tr class="okj-reminder-row" 
                                 data-customer="<?php echo esc_attr($r['customer_name']); ?>"
                                 data-product="<?php echo esc_attr($r['product_label']); ?>"
                                 data-milestone="H-<?php echo esc_attr($r['offset_days']); ?>"
@@ -88,25 +88,25 @@
                                 <td><strong><?php echo esc_html($r['customer_name']); ?></strong></td>
                                 <td><?php echo esc_html($r['product_label']); ?></td>
                                 <td>H-<?php echo esc_html($r['offset_days']); ?></td>
-                                <td><span class="dashicons dashicons-clock wrpm-text-muted"></span> <?php echo esc_html($r['reminder_date']); ?></td>
+                                <td><span class="dashicons dashicons-clock okj-text-muted"></span> <?php echo esc_html($r['reminder_date']); ?></td>
                                 <td>
                                     <?php if ($r['status'] === 'sent'): ?>
-                                        <span class="wrpm-badge wrpm-badge-success">Terkirim</span>
+                                        <span class="okj-badge okj-badge-success">Terkirim</span>
                                     <?php else: ?>
-                                        <span class="wrpm-badge wrpm-badge-warning">Pending</span>
+                                        <span class="okj-badge okj-badge-warning">Pending</span>
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo esc_html($r['sent_via'] ?: '-'); ?></td>
                                 <td><?php echo esc_html($r['sent_at'] ?: '-'); ?></td>
                                 <td>
                                     <?php if ($r['last_error']): ?>
-                                        <small class="wrpm-text-danger"><?php echo esc_html($r['last_error']); ?></small>
+                                        <small class="okj-text-danger"><?php echo esc_html($r['last_error']); ?></small>
                                     <?php else: ?>
-                                        <span class="wrpm-text-muted">-</span>
+                                        <span class="okj-text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a class="wrpm-btn wrpm-btn-secondary wrpm-btn-small" href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=wrpm_send_reminder_manual&id=' . $r['id']), 'wrpm_send_reminder_' . $r['id']); ?>" onclick="return confirm('Kirim reminder secara manual sekarang juga?');">
+                                    <a class="okj-btn okj-btn-secondary okj-btn-small" href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=okj_send_reminder_manual&id=' . $r['id']), 'okj_send_reminder_' . $r['id']); ?>" onclick="return confirm('Kirim reminder secara manual sekarang juga?');">
                                         <span class="dashicons dashicons-share-alt2"></span> Trigger Now
                                     </a>
                                 </td>
@@ -122,15 +122,15 @@
 <script>
 jQuery(document).ready(function($) {
     function filterReminders() {
-        var searchVal = $('#wrpm-reminder-search').val().toLowerCase().trim();
-        var customerVal = $('#wrpm-reminder-filter-customer').val();
-        var productVal = $('#wrpm-reminder-filter-product').val();
-        var milestoneVal = $('#wrpm-reminder-filter-milestone').val();
-        var statusVal = $('#wrpm-reminder-filter-status').val();
+        var searchVal = $('#okj-reminder-search').val().toLowerCase().trim();
+        var customerVal = $('#okj-reminder-filter-customer').val();
+        var productVal = $('#okj-reminder-filter-product').val();
+        var milestoneVal = $('#okj-reminder-filter-milestone').val();
+        var statusVal = $('#okj-reminder-filter-status').val();
 
         var visibleCount = 0;
 
-        $('.wrpm-reminder-row').each(function() {
+        $('.okj-reminder-row').each(function() {
             var $row = $(this);
             var customer = $row.data('customer');
             var product = $row.data('product');
@@ -157,17 +157,17 @@ jQuery(document).ready(function($) {
         });
 
         // Toggle empty message if no rows match
-        var $tbody = $('.wrpm-table tbody');
-        $('#wrpm-reminder-no-results').remove();
+        var $tbody = $('.okj-table tbody');
+        $('#okj-reminder-no-results').remove();
         if (visibleCount === 0) {
-            $tbody.after('<div id="wrpm-reminder-no-results" class="wrpm-empty-state" style="padding: 30px;"><span class="dashicons dashicons-search" style="font-size: 2rem; color: #d1d5db; margin-bottom: 8px;"></span><p>Tidak ada antrean reminder yang cocok dengan filter Anda.</p></div>');
-            $('.wrpm-table').hide();
+            $tbody.after('<div id="okj-reminder-no-results" class="okj-empty-state" style="padding: 30px;"><span class="dashicons dashicons-search" style="font-size: 2rem; color: #d1d5db; margin-bottom: 8px;"></span><p>Tidak ada antrean reminder yang cocok dengan filter Anda.</p></div>');
+            $('.okj-table').hide();
         } else {
-            $('.wrpm-table').show();
+            $('.okj-table').show();
         }
     }
 
-    $('#wrpm-reminder-search').on('keyup input', filterReminders);
-    $('#wrpm-reminder-filter-customer, #wrpm-reminder-filter-product, #wrpm-reminder-filter-milestone, #wrpm-reminder-filter-status').on('change', filterReminders);
+    $('#okj-reminder-search').on('keyup input', filterReminders);
+    $('#okj-reminder-filter-customer, #okj-reminder-filter-product, #okj-reminder-filter-milestone, #okj-reminder-filter-status').on('change', filterReminders);
 });
 </script>

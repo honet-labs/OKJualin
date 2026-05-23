@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_Reseller_Manager {
+class OKJ_Reseller_Manager {
     public static function log($action, $entity, $entity_id, $message, $meta = null) {
         global $wpdb;
         $ip = '';
@@ -17,7 +17,7 @@ class WRPM_Reseller_Manager {
         $user_id = $user && $user->ID ? $user->ID : 0;
         $user_login = $user && $user->user_login ? $user->user_login : 'system';
 
-        $wpdb->insert(WRPM_DB::get_table('logs'), [
+        $wpdb->insert(OKJ_DB::get_table('logs'), [
             'happened_at' => current_time('mysql'),
             'user_id' => $user_id,
             'user_login' => $user_login,
@@ -32,7 +32,7 @@ class WRPM_Reseller_Manager {
 
     public static function sync_reminders($active_row) {
         global $wpdb;
-        $settings = get_option('wrpm_settings_v1', []);
+        $settings = get_option('okj_settings_v1', []);
         $offsets = !empty($settings['reminder_offsets']) ? (array)$settings['reminder_offsets'] : [7, 3, 1];
 
         $active_id = (string)$active_row['id'];
@@ -47,19 +47,19 @@ class WRPM_Reseller_Manager {
             $remaining = (int)floor((strtotime($expires_at) - strtotime(wp_date('Y-m-d'))) / DAY_IN_SECONDS);
 
             $existing = $wpdb->get_row($wpdb->prepare(
-                "SELECT id, status FROM " . WRPM_DB::get_table('active_reminders') . " WHERE active_product_id = %s AND offset_days = %d LIMIT 1",
+                "SELECT id, status FROM " . OKJ_DB::get_table('active_reminders') . " WHERE active_product_id = %s AND offset_days = %d LIMIT 1",
                 $active_id, $d
             ), ARRAY_A);
 
             if ($existing) {
-                $wpdb->update(WRPM_DB::get_table('active_reminders'), [
+                $wpdb->update(OKJ_DB::get_table('active_reminders'), [
                     'customer_id' => $customer_id,
                     'reminder_date' => $reminder_date,
                     'remaining_days' => $remaining,
                     'updated_at' => current_time('mysql'),
                 ], ['id' => $existing['id']]);
             } else {
-                $wpdb->insert(WRPM_DB::get_table('active_reminders'), [
+                $wpdb->insert(OKJ_DB::get_table('active_reminders'), [
                     'id' => wp_generate_uuid4(),
                     'active_product_id' => $active_id,
                     'customer_id' => $customer_id,
@@ -79,17 +79,17 @@ class WRPM_Reseller_Manager {
         $today = wp_date('Y-m-d');
         $reminders = $wpdb->get_results($wpdb->prepare(
             "SELECT r.*, a.product_label, a.start_date, a.duration_days, a.notes, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp, a.expires_at, a.price
-             FROM " . WRPM_DB::get_table('active_reminders') . " r
-             INNER JOIN " . WRPM_DB::get_table('active_products') . " a ON r.active_product_id = a.id
-             INNER JOIN " . WRPM_DB::get_table('customers') . " c ON r.customer_id = c.id
+             FROM " . OKJ_DB::get_table('active_reminders') . " r
+             INNER JOIN " . OKJ_DB::get_table('active_products') . " a ON r.active_product_id = a.id
+             INNER JOIN " . OKJ_DB::get_table('customers') . " c ON r.customer_id = c.id
              WHERE r.status = 'pending' AND r.reminder_date <= %s",
             $today
         ), ARRAY_A);
 
         if (empty($reminders)) return;
 
-        $notifier = new WRPM_Notifier();
-        $settings = get_option('wrpm_settings_v1', []);
+        $notifier = new OKJ_Notifier();
+        $settings = get_option('okj_settings_v1', []);
 
         foreach ($reminders as $r) {
             $vars = [
@@ -105,7 +105,7 @@ class WRPM_Reseller_Manager {
                 'start_date' => date_i18n(get_option('date_format'), strtotime($r['start_date'])),
                 'duration_days' => $r['duration_days'],
                 'notes' => $r['notes'] ?: '-',
-                'invoice_url' => admin_url('admin-post.php?action=wrpm_invoice_pdf&id=' . $r['active_product_id']),
+                'invoice_url' => admin_url('admin-post.php?action=okj_invoice_pdf&id=' . $r['active_product_id']),
                 'company_name' => !empty($settings['pdf_company_name']) ? $settings['pdf_company_name'] : get_bloginfo('name'),
                 'company_address' => !empty($settings['pdf_company_address']) ? $settings['pdf_company_address'] : '',
                 'company_phone' => !empty($settings['pdf_company_phone']) ? $settings['pdf_company_phone'] : '',
@@ -153,7 +153,7 @@ class WRPM_Reseller_Manager {
 
             $now = current_time('mysql');
             if (!empty($sent_channels)) {
-                $wpdb->update(WRPM_DB::get_table('active_reminders'), [
+                $wpdb->update(OKJ_DB::get_table('active_reminders'), [
                     'status' => 'sent',
                     'sent_via' => implode(',', $sent_channels),
                     'sent_at' => $now,
@@ -163,7 +163,7 @@ class WRPM_Reseller_Manager {
 
                 self::log('send_reminder', 'reminder', $r['id'], "Reminder sent to {$r['customer_name']} via " . implode(',', $sent_channels));
             } else {
-                $wpdb->update(WRPM_DB::get_table('active_reminders'), [
+                $wpdb->update(OKJ_DB::get_table('active_reminders'), [
                     'last_error' => implode('; ', $error_log),
                     'updated_at' => $now,
                 ], ['id' => $r['id']]);

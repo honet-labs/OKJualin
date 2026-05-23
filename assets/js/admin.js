@@ -1,20 +1,20 @@
-jQuery(document).ready(function($) {
+﻿jQuery(document).ready(function($) {
     // Initialize Select2 on all searchable select elements
     if ($.fn.select2) {
-        $('.wrpm-select2').select2({
+        $('.okj-select2').select2({
             placeholder: '-- Pilih --',
             allowClear: true,
             width: 'resolve'
         });
 
-        $('.wrpm-select2-tags').select2({
+        $('.okj-select2-tags').select2({
             placeholder: 'Pilih atau ketik tag baru...',
             tags: true,
             tokenSeparators: [','],
             width: 'resolve'
         });
 
-        $('.wrpm-select2-category').select2({
+        $('.okj-select2-category').select2({
             placeholder: 'Pilih atau ketik kategori baru...',
             tags: true,
             allowClear: true,
@@ -79,15 +79,15 @@ jQuery(document).ready(function($) {
     calculateExpiryDate();
 
     // Live table search filtering
-    $('.wrpm-table-search').on('keyup', function() {
+    $('.okj-table-search').on('keyup', function() {
         var value = $(this).val().toLowerCase();
-        $(this).closest('.wrpm-card-body').find('.wrpm-table tbody tr').filter(function() {
+        $(this).closest('.okj-card-body').find('.okj-table tbody tr').filter(function() {
             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
     });
 
     // Modal display logic for product details
-    $('.wrpm-view-detail').on('click', function(e) {
+    $('.okj-view-detail').on('click', function(e) {
         e.preventDefault();
         var name = $(this).data('name');
         var desc = $(this).data('description') || '<i>Tidak ada deskripsi.</i>';
@@ -100,12 +100,12 @@ jQuery(document).ready(function($) {
         $('#wrpmDetailModal').css('display', 'flex');
     });
 
-    $('.wrpm-modal-close, .wrpm-modal-close-btn').on('click', function() {
+    $('.okj-modal-close, .okj-modal-close-btn').on('click', function() {
         $('#wrpmDetailModal').css('display', 'none');
     });
 
     // Modal display logic for seller details
-    $('.wrpm-view-seller-detail').on('click', function(e) {
+    $('.okj-view-seller-detail').on('click', function(e) {
         e.preventDefault();
         var name = $(this).data('name');
         var email = $(this).data('email') || '-';
@@ -122,12 +122,12 @@ jQuery(document).ready(function($) {
         $('#wrpmSellerModal').css('display', 'flex');
     });
 
-    $('.wrpm-seller-modal-close, .wrpm-seller-modal-close-btn').on('click', function() {
+    $('.okj-seller-modal-close, .okj-seller-modal-close-btn').on('click', function() {
         $('#wrpmSellerModal').css('display', 'none');
     });
 
     // Modal display logic for customer details
-    $('.wrpm-view-customer-detail').on('click', function(e) {
+    $('.okj-view-customer-detail').on('click', function(e) {
         e.preventDefault();
         var name = $(this).data('name');
         var email = $(this).data('email') || '-';
@@ -144,12 +144,12 @@ jQuery(document).ready(function($) {
         $('#wrpmCustomerModal').css('display', 'flex');
     });
 
-    $('.wrpm-customer-modal-close, .wrpm-customer-modal-close-btn').on('click', function() {
+    $('.okj-customer-modal-close, .okj-customer-modal-close-btn').on('click', function() {
         $('#wrpmCustomerModal').css('display', 'none');
     });
 
     // Modal display logic for payment attachment details
-    $('.wrpm-view-payment-proof').on('click', function(e) {
+    $('.okj-view-payment-proof').on('click', function(e) {
         e.preventDefault();
         var url = $(this).data('url');
         $('#wrpmAttachmentImg').attr('src', url);
@@ -157,7 +157,7 @@ jQuery(document).ready(function($) {
         $('#wrpmAttachmentModal').css('display', 'flex');
     });
 
-    $('.wrpm-attachment-modal-close, .wrpm-attachment-modal-close-btn').on('click', function() {
+    $('.okj-attachment-modal-close, .okj-attachment-modal-close-btn').on('click', function() {
         $('#wrpmAttachmentModal').css('display', 'none');
     });
 
@@ -191,13 +191,13 @@ jQuery(document).ready(function($) {
     // ==========================================
 
     // Quick Add Seller Modal triggers
-    $('.wrpm-quick-add-seller-btn').on('click', function(e) {
+    $('.okj-quick-add-seller-btn').on('click', function(e) {
         e.preventDefault();
         $('#wrpmQuickAddSellerModal').css('display', 'flex');
         $('#wrpmQuickSellerName').focus();
     });
 
-    $('.wrpm-quick-seller-close, .wrpm-quick-seller-close-btn').on('click', function() {
+    $('.okj-quick-seller-close, .okj-quick-seller-close-btn').on('click', function() {
         $('#wrpmQuickAddSellerModal').css('display', 'none');
         // Clear fields
         $('#wrpmQuickSellerName').val('');
@@ -217,13 +217,13 @@ jQuery(document).ready(function($) {
         }
 
         var $btn = $(this);
-        var $spinner = $btn.find('.wrpm-spinner');
+        var $spinner = $btn.find('.okj-spinner');
 
         $btn.prop('disabled', true);
         $spinner.show();
 
         $.post(ajaxurl, {
-            action: 'wrpm_quick_add_seller',
+            action: 'okj_quick_add_seller',
             name: name,
             whatsapp: whatsapp,
             email: email
@@ -255,13 +255,13 @@ jQuery(document).ready(function($) {
     });
 
     // Quick Add Customer Modal triggers
-    $('.wrpm-quick-add-customer-btn').on('click', function(e) {
+    $('.okj-quick-add-customer-btn').on('click', function(e) {
         e.preventDefault();
         $('#wrpmQuickAddCustomerModal').css('display', 'flex');
         $('#wrpmQuickCustomerName').focus();
     });
 
-    $('.wrpm-quick-customer-close, .wrpm-quick-customer-close-btn').on('click', function() {
+    $('.okj-quick-customer-close, .okj-quick-customer-close-btn').on('click', function() {
         $('#wrpmQuickAddCustomerModal').css('display', 'none');
         // Clear fields
         $('#wrpmQuickCustomerName').val('');
@@ -281,13 +281,13 @@ jQuery(document).ready(function($) {
         }
 
         var $btn = $(this);
-        var $spinner = $btn.find('.wrpm-spinner');
+        var $spinner = $btn.find('.okj-spinner');
 
         $btn.prop('disabled', true);
         $spinner.show();
 
         $.post(ajaxurl, {
-            action: 'wrpm_quick_add_customer',
+            action: 'okj_quick_add_customer',
             name: name,
             whatsapp: whatsapp,
             email: email
@@ -319,7 +319,7 @@ jQuery(document).ready(function($) {
     });
 
     // Active Product Notes Modal triggers
-    $('.wrpm-view-active-notes').on('click', function(e) {
+    $('.okj-view-active-notes').on('click', function(e) {
         e.preventDefault();
         var name = $(this).data('name');
         var notes = $(this).data('notes') || 'Tidak ada catatan layanan.';
@@ -329,7 +329,7 @@ jQuery(document).ready(function($) {
         $('#wrpmActiveNotesModal').css('display', 'flex');
     });
 
-    $('.wrpm-active-notes-close, .wrpm-active-notes-close-btn').on('click', function() {
+    $('.okj-active-notes-close, .okj-active-notes-close-btn').on('click', function() {
         $('#wrpmActiveNotesModal').css('display', 'none');
     });
 });

@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 if (!defined('ABSPATH')) { exit; }
 
-class WRPM_DB {
+class OKJ_DB {
     public static function get_table($name) {
         global $wpdb;
-        return $wpdb->prefix . 'wrpm_' . $name;
+        return $wpdb->prefix . 'okj_' . $name;
     }
 
     public static function install() {
@@ -13,6 +13,37 @@ class WRPM_DB {
         }
 
         global $wpdb;
+
+        // Auto migrate old OKJ tables to new OKJ tables
+        $old_prefix = 'wrp' . 'm_';
+        $new_prefix = 'ok' . 'j_';
+        $old_tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs', 'shortlinks'];
+        foreach ($old_tables as $t) {
+            $old_table = $wpdb->prefix . $old_prefix . $t;
+            $new_table = $wpdb->prefix . $new_prefix . $t;
+            if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $old_table)) === $old_table) {
+                if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $new_table)) !== $new_table) {
+                    $wpdb->query("RENAME TABLE {$old_table} TO {$new_table}");
+                }
+            }
+        }
+
+        // Migrate old settings
+        $old_settings_key = $old_prefix . 'settings_v1';
+        $new_settings_key = $new_prefix . 'settings_v1';
+        $old_settings = get_option($old_settings_key);
+        if ($old_settings !== false && get_option($new_settings_key) === false) {
+            update_option($new_settings_key, $old_settings);
+        }
+
+        // Migrate old db version
+        $old_db_ver_key = $old_prefix . 'db_version';
+        $new_db_ver_key = $new_prefix . 'db_version';
+        $old_db_ver = get_option($old_db_ver_key);
+        if ($old_db_ver !== false && get_option($new_db_ver_key) === false) {
+            update_option($new_db_ver_key, $old_db_ver);
+        }
+
         $charset = $wpdb->get_charset_collate();
 
         $t_prices = self::get_table('product_prices');
@@ -195,23 +226,23 @@ class WRPM_DB {
         foreach ($tables as $t) {
             $wpdb->query("DROP TABLE IF EXISTS " . self::get_table($t));
         }
-        delete_option('wrpm_settings_v1');
+        delete_option('okj_settings_v1');
     }
 
     private static function ensure_caps() {
         $admin = get_role('administrator');
         if ($admin) {
-            $admin->add_cap('wrpm_manage');
-            $admin->add_cap('wrpm_view_reports');
-            $admin->add_cap('wrpm_manage_settings');
-            $admin->add_cap('wrpm_view_logs');
+            $admin->add_cap('okj_manage');
+            $admin->add_cap('okj_view_reports');
+            $admin->add_cap('okj_manage_settings');
+            $admin->add_cap('okj_view_logs');
         }
 
-        if (!get_role('wrpm_manager')) {
-            add_role('wrpm_manager', 'WRPM Manager', [
-                'wrpm_manage' => true,
-                'wrpm_view_reports' => true,
-                'wrpm_view_logs' => true,
+        if (!get_role('okj_manager')) {
+            add_role('okj_manager', 'OKJualin Manager', [
+                'okj_manage' => true,
+                'okj_view_reports' => true,
+                'okj_view_logs' => true,
             ]);
         }
     }
