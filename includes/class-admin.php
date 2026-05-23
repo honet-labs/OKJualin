@@ -24,6 +24,10 @@ class WRPM_Admin {
 
         // Manual reminder triggers
         add_action('admin_post_wrpm_send_reminder_manual', [$this, 'send_reminder_manual']);
+
+        // AJAX hooks for quick add
+        add_action('wp_ajax_wrpm_quick_add_seller', [$this, 'quick_add_seller']);
+        add_action('wp_ajax_wrpm_quick_add_customer', [$this, 'quick_add_customer']);
     }
 
     public function register_menus() {
@@ -743,5 +747,75 @@ class WRPM_Admin {
 
         wp_safe_redirect(admin_url('admin.php?page=wrpm-reminders'));
         exit;
+    }
+
+    public function quick_add_seller() {
+        if (!current_user_can('wrpm_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        $name = !empty($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
+        if (empty($name)) {
+            wp_send_json_error(['message' => 'Nama Seller tidak boleh kosong.']);
+        }
+
+        global $wpdb;
+        $id = wp_generate_uuid4();
+        $data = [
+            'id' => $id,
+            'name' => $name,
+            'whatsapp' => !empty($_POST['whatsapp']) ? sanitize_text_field($_POST['whatsapp']) : '',
+            'telegram' => !empty($_POST['telegram']) ? sanitize_text_field($_POST['telegram']) : '',
+            'phone' => !empty($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '',
+            'email' => !empty($_POST['email']) ? sanitize_email($_POST['email']) : '',
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+        ];
+
+        $inserted = $wpdb->insert(WRPM_DB::get_table('sellers'), $data);
+        if ($inserted) {
+            WRPM_Reseller_Manager::log('create', 'seller', $id, "Quick created seller: " . $name);
+            wp_send_json_success([
+                'id' => $id,
+                'name' => $name
+            ]);
+        } else {
+            wp_send_json_error(['message' => 'Gagal menyimpan data Seller ke database.']);
+        }
+    }
+
+    public function quick_add_customer() {
+        if (!current_user_can('wrpm_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        $name = !empty($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
+        if (empty($name)) {
+            wp_send_json_error(['message' => 'Nama Customer tidak boleh kosong.']);
+        }
+
+        global $wpdb;
+        $id = wp_generate_uuid4();
+        $data = [
+            'id' => $id,
+            'name' => $name,
+            'whatsapp' => !empty($_POST['whatsapp']) ? sanitize_text_field($_POST['whatsapp']) : '',
+            'telegram' => !empty($_POST['telegram']) ? sanitize_text_field($_POST['telegram']) : '',
+            'phone' => !empty($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '',
+            'email' => !empty($_POST['email']) ? sanitize_email($_POST['email']) : '',
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+        ];
+
+        $inserted = $wpdb->insert(WRPM_DB::get_table('customers'), $data);
+        if ($inserted) {
+            WRPM_Reseller_Manager::log('create', 'customer', $id, "Quick created customer: " . $name);
+            wp_send_json_success([
+                'id' => $id,
+                'name' => $name
+            ]);
+        } else {
+            wp_send_json_error(['message' => 'Gagal menyimpan data Customer ke database.']);
+        }
     }
 }

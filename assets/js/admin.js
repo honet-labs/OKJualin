@@ -165,5 +165,143 @@ jQuery(document).ready(function($) {
         if ($(e.target).is('#wrpmAttachmentModal')) {
             $('#wrpmAttachmentModal').css('display', 'none');
         }
+        if ($(e.target).is('#wrpmQuickAddSellerModal')) {
+            $('#wrpmQuickAddSellerModal').css('display', 'none');
+        }
+        if ($(e.target).is('#wrpmQuickAddCustomerModal')) {
+            $('#wrpmQuickAddCustomerModal').css('display', 'none');
+        }
+    });
+
+    // ==========================================
+    // QUICK ADD SELLER AND CUSTOMER MODALS
+    // ==========================================
+
+    // Quick Add Seller Modal triggers
+    $('.wrpm-quick-add-seller-btn').on('click', function(e) {
+        e.preventDefault();
+        $('#wrpmQuickAddSellerModal').css('display', 'flex');
+        $('#wrpmQuickSellerName').focus();
+    });
+
+    $('.wrpm-quick-seller-close, .wrpm-quick-seller-close-btn').on('click', function() {
+        $('#wrpmQuickAddSellerModal').css('display', 'none');
+        // Clear fields
+        $('#wrpmQuickSellerName').val('');
+        $('#wrpmQuickSellerWhatsapp').val('');
+        $('#wrpmQuickSellerEmail').val('');
+    });
+
+    $('#wrpmQuickSellerSubmitBtn').on('click', function(e) {
+        e.preventDefault();
+        var name = $('#wrpmQuickSellerName').val().trim();
+        var whatsapp = $('#wrpmQuickSellerWhatsapp').val().trim();
+        var email = $('#wrpmQuickSellerEmail').val().trim();
+
+        if (!name) {
+            alert('Nama Seller tidak boleh kosong.');
+            return;
+        }
+
+        var $btn = $(this);
+        var $spinner = $btn.find('.wrpm-spinner');
+
+        $btn.prop('disabled', true);
+        $spinner.show();
+
+        $.post(ajaxurl, {
+            action: 'wrpm_quick_add_seller',
+            name: name,
+            whatsapp: whatsapp,
+            email: email
+        }, function(response) {
+            $btn.prop('disabled', false);
+            $spinner.hide();
+
+            if (response.success) {
+                var newId = response.data.id;
+                var newName = response.data.name;
+
+                // Add to seller_id select options
+                var newOption = new Option(newName, newId, true, true);
+                $('select[name="seller_id"]').append(newOption).trigger('change');
+
+                // Close and clear modal
+                $('#wrpmQuickAddSellerModal').css('display', 'none');
+                $('#wrpmQuickSellerName').val('');
+                $('#wrpmQuickSellerWhatsapp').val('');
+                $('#wrpmQuickSellerEmail').val('');
+            } else {
+                alert(response.data.message || 'Terjadi kesalahan saat menyimpan Seller.');
+            }
+        }).fail(function() {
+            $btn.prop('disabled', false);
+            $spinner.hide();
+            alert('Terjadi kesalahan jaringan.');
+        });
+    });
+
+    // Quick Add Customer Modal triggers
+    $('.wrpm-quick-add-customer-btn').on('click', function(e) {
+        e.preventDefault();
+        $('#wrpmQuickAddCustomerModal').css('display', 'flex');
+        $('#wrpmQuickCustomerName').focus();
+    });
+
+    $('.wrpm-quick-customer-close, .wrpm-quick-customer-close-btn').on('click', function() {
+        $('#wrpmQuickAddCustomerModal').css('display', 'none');
+        // Clear fields
+        $('#wrpmQuickCustomerName').val('');
+        $('#wrpmQuickCustomerWhatsapp').val('');
+        $('#wrpmQuickCustomerEmail').val('');
+    });
+
+    $('#wrpmQuickCustomerSubmitBtn').on('click', function(e) {
+        e.preventDefault();
+        var name = $('#wrpmQuickCustomerName').val().trim();
+        var whatsapp = $('#wrpmQuickCustomerWhatsapp').val().trim();
+        var email = $('#wrpmQuickCustomerEmail').val().trim();
+
+        if (!name) {
+            alert('Nama Customer tidak boleh kosong.');
+            return;
+        }
+
+        var $btn = $(this);
+        var $spinner = $btn.find('.wrpm-spinner');
+
+        $btn.prop('disabled', true);
+        $spinner.show();
+
+        $.post(ajaxurl, {
+            action: 'wrpm_quick_add_customer',
+            name: name,
+            whatsapp: whatsapp,
+            email: email
+        }, function(response) {
+            $btn.prop('disabled', false);
+            $spinner.hide();
+
+            if (response.success) {
+                var newId = response.data.id;
+                var newName = response.data.name;
+
+                // Add to customer_id select options
+                var newOption = new Option(newName, newId, true, true);
+                $('select[name="customer_id"]').append(newOption).trigger('change');
+
+                // Close and clear modal
+                $('#wrpmQuickAddCustomerModal').css('display', 'none');
+                $('#wrpmQuickCustomerName').val('');
+                $('#wrpmQuickCustomerWhatsapp').val('');
+                $('#wrpmQuickCustomerEmail').val('');
+            } else {
+                alert(response.data.message || 'Terjadi kesalahan saat menyimpan Customer.');
+            }
+        }).fail(function() {
+            $btn.prop('disabled', false);
+            $spinner.hide();
+            alert('Terjadi kesalahan jaringan.');
+        });
     });
 });

@@ -72,7 +72,12 @@
                         </div>
 
                         <div class="wrpm-form-group">
-                            <label class="wrpm-label">Seller</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label class="wrpm-label" style="margin-bottom: 0;">Seller</label>
+                                <a href="#" class="wrpm-quick-add-seller-btn" style="text-decoration: none; font-size: 12px; color: #4f46e5; font-weight: 600; display: inline-flex; align-items: center;">
+                                    <span class="dashicons dashicons-plus-alt2" style="font-size: 14px; width: 14px; height: 14px; margin-right: 2px; margin-top: 1px;"></span> Tambah Seller Baru
+                                </a>
+                            </div>
                             <select name="seller_id" class="wrpm-select wrpm-select2" style="width: 100%;">
                                 <option value="">-- Pilih Seller --</option>
                                 <?php foreach ($sellers as $s): ?>
@@ -302,6 +307,47 @@
 .wrpm-view-seller-detail:hover {
     color: #4338ca !important;
     border-bottom-color: #4338ca !important;
+}
+</style>
+
+<!-- Modal Quick Add Seller -->
+<div id="wrpmQuickAddSellerModal" class="wrpm-modal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="wrpm-modal-content" style="background-color: #ffffff; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; animation: wrpmFadeIn 0.25s ease-out; margin: auto;">
+        <div class="wrpm-modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+                <span class="dashicons dashicons-admin-users" style="margin-right: 8px; color: #4f46e5;"></span>
+                Tambah Seller Baru (Cepat)
+            </h3>
+            <span class="wrpm-quick-seller-close" style="color: #94a3b8; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        <div class="wrpm-modal-body" style="padding: 20px 24px;">
+            <div class="wrpm-form-group" style="margin-bottom: 12px;">
+                <label class="wrpm-label">Nama Seller <span class="wrpm-required">*</span></label>
+                <input type="text" id="wrpmQuickSellerName" class="wrpm-input" placeholder="Masukkan nama seller..." required />
+            </div>
+            <div class="wrpm-form-group" style="margin-bottom: 12px;">
+                <label class="wrpm-label">No. WhatsApp</label>
+                <input type="text" id="wrpmQuickSellerWhatsapp" class="wrpm-input" placeholder="628123456789..." />
+            </div>
+            <div class="wrpm-form-group" style="margin-bottom: 0;">
+                <label class="wrpm-label">Email</label>
+                <input type="email" id="wrpmQuickSellerEmail" class="wrpm-input" placeholder="seller@email.com..." />
+            </div>
+        </div>
+        <div class="wrpm-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="wrpm-btn wrpm-btn-secondary wrpm-quick-seller-close-btn" style="cursor: pointer;">Batal</button>
+            <button type="button" id="wrpmQuickSellerSubmitBtn" class="wrpm-btn wrpm-btn-primary" style="cursor: pointer; display: inline-flex; align-items: center;">
+                <span class="wrpm-spinner" style="display: none; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; width: 12px; height: 12px; margin-right: 6px; animation: wrpmSpin 1s linear infinite;"></span>
+                Simpan Seller
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes wrpmSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>
 
