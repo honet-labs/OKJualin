@@ -45,18 +45,27 @@ jQuery(document).ready(function($) {
         var purchaseDateStr = $('input[name="purchase_date"]').val();
         var duration = parseInt($('input[name="duration_days"]').val());
         if (purchaseDateStr && !isNaN(duration) && duration >= 0) {
-            var date = new Date(purchaseDateStr);
-            date.setDate(date.getDate() + duration);
-            var y = date.getFullYear();
-            var m = String(date.getMonth() + 1).padStart(2, '0');
-            var d = String(date.getDate()).padStart(2, '0');
-            $('input[name="expires_at"]').val(y + '-' + m + '-' + d);
+            var parts = purchaseDateStr.split('-');
+            if (parts.length === 3) {
+                var year = parseInt(parts[0], 10);
+                var month = parseInt(parts[1], 10) - 1; // 0-indexed
+                var day = parseInt(parts[2], 10);
+                var date = new Date(year, month, day);
+                date.setDate(date.getDate() + duration);
+                var y = date.getFullYear();
+                var m = String(date.getMonth() + 1).padStart(2, '0');
+                var d = String(date.getDate()).padStart(2, '0');
+                $('input[name="expires_at"]').val(y + '-' + m + '-' + d);
+            }
         }
     }
 
     $('input[name="purchase_date"], input[name="duration_days"]').on('input change', function() {
         calculateExpiryDate();
     });
+
+    // Trigger on page load for existing edit data
+    calculateExpiryDate();
 
     // Live table search filtering
     $('.wrpm-table-search').on('keyup', function() {

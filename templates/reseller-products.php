@@ -69,7 +69,7 @@
 
                         <div class="wrpm-form-group">
                             <label class="wrpm-label">Tanggal Kadaluwarsa</label>
-                            <input type="date" name="expires_at" class="wrpm-input" value="<?php echo $row ? esc_attr($row['expires_at']) : ''; ?>" />
+                            <input type="date" name="expires_at" class="wrpm-input" value="<?php echo $row ? esc_attr($row['expires_at']) : ''; ?>" readonly style="background: #f1f5f9; cursor: not-allowed; pointer-events: none;" tabindex="-1" />
                         </div>
 
                         <div class="wrpm-form-group">
