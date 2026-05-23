@@ -212,7 +212,7 @@ class WRPM_Admin {
             $id = !empty($_GET['id']) ? sanitize_text_field($_GET['id']) : '';
             $row = $id ? $wpdb->get_row($wpdb->prepare("SELECT * FROM " . WRPM_DB::get_table('active_products') . " WHERE id = %s", $id), ARRAY_A) : null;
             $customers = $wpdb->get_results("SELECT id, name FROM " . WRPM_DB::get_table('customers') . " ORDER BY name ASC", ARRAY_A);
-            $resellers = $wpdb->get_results("SELECT id, product_name, duration_days, price FROM " . WRPM_DB::get_table('reseller_products') . " ORDER BY product_name ASC", ARRAY_A);
+            $resellers = $wpdb->get_results("SELECT r.id, r.product_name, r.duration_days, r.price, s.name as seller_name FROM " . WRPM_DB::get_table('reseller_products') . " r LEFT JOIN " . WRPM_DB::get_table('sellers') . " s ON r.seller_id = s.id ORDER BY r.product_name ASC", ARRAY_A);
             $this->render_template('active-products', ['action' => $action, 'row' => $row, 'customers' => $customers, 'resellers' => $resellers]);
         } else {
             $rows = $wpdb->get_results("SELECT a.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone, c.telegram as customer_telegram, c.whatsapp as customer_whatsapp FROM " . WRPM_DB::get_table('active_products') . " a LEFT JOIN " . WRPM_DB::get_table('customers') . " c ON a.customer_id = c.id ORDER BY a.expires_at ASC", ARRAY_A);

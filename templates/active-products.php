@@ -26,9 +26,12 @@
                             <label class="wrpm-label">Pilih Produk Reseller Terkait <span class="wrpm-required">*</span></label>
                             <select name="reseller_product_id" class="wrpm-select wrpm-select2" style="width: 100%;" required>
                                 <option value="">-- Pilih Produk Reseller --</option>
-                                <?php foreach ($resellers as $r): ?>
+                                <?php foreach ($resellers as $r): 
+                                    $short_id = substr($r['id'], 0, 8);
+                                    $seller_info = !empty($r['seller_name']) ? ' - ' . $r['seller_name'] : ' - Tanpa Seller';
+                                ?>
                                     <option value="<?php echo esc_attr($r['id']); ?>" <?php echo $row && $row['reseller_product_id'] === $r['id'] ? 'selected' : ''; ?>>
-                                        <?php echo esc_html($r['product_name']); ?>
+                                        <?php echo esc_html($short_id . ' - ' . $r['product_name'] . ' - ' . $r['duration_days'] . ' Hari' . $seller_info); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
