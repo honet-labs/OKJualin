@@ -1,4 +1,4 @@
-﻿/* OKJualin Premium CSS Design System */
+/* OKJualin Premium CSS Design System */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 .okj-wrap {
@@ -386,3 +386,422 @@
     color: #94a3b8;
     cursor: default;
 }
+
+/* ==========================================================================
+   Point of Sale (POS) Styles
+   ========================================================================== */
+.okj-pos-container {
+    max-width: 100% !important;
+    margin-right: 20px !important;
+}
+.okj-pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.okj-pos-title-area h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e1b4b;
+    margin: 0 0 4px 0;
+}
+.okj-pos-meta-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.okj-pos-time {
+    font-family: monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+.okj-pos-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #15803d;
+    background: #f0fdf4;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #bbf7d0;
+}
+.okj-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #16a34a;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+    animation: okjPulse 1.8s infinite;
+}
+@keyframes okjPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+/* POS Layout Split Panel */
+.okj-pos-layout {
+    display: grid;
+    grid-template-columns: 63% 35%;
+    gap: 2% !important;
+}
+.okj-pos-catalog-panel {
+    display: flex;
+    flex-direction: column;
+}
+.okj-pos-filter-bar {
+    display: grid;
+    grid-template-columns: 1fr 180px;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.okj-pos-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.okj-pos-search-box span.dashicons {
+    position: absolute;
+    left: 12px;
+    color: #94a3b8;
+}
+.okj-pos-search-box input {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+.okj-pos-search-box input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* Products Grid dynamic loader */
+.okj-pos-products-list-scroll {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+.okj-pos-products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    min-height: 400px;
+}
+.okj-pos-loader {
+    grid-column: span 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    color: #64748b;
+}
+.okj-spinner-large {
+    border: 3px solid #f1f5f9;
+    border-top: 3px solid #6366f1;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: posSpin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+@keyframes posSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Product Cards visual styling */
+.okj-pos-product-card {
+    background: #ffffff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+.okj-pos-product-card:hover {
+    border-color: #c7d2fe;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.1);
+}
+.okj-pos-p-title {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    line-height: 1.4;
+}
+.okj-pos-p-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+.okj-pos-p-meta span {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.okj-pos-p-cat { background: #f1f5f9; color: #475569; }
+.okj-pos-p-dur { background: #e0f2fe; color: #0369a1; }
+.okj-pos-p-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: #4f46e5;
+    margin: 0;
+}
+.okj-pos-p-add-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #4f46e5;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.okj-pos-product-card:hover .okj-pos-p-add-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+}
+
+/* RIGHT SIDE: Cart layout mechanics */
+.okj-pos-cart-body {
+    background: #fafbfb;
+    border-top: 1px solid #f1f5f9;
+}
+.okj-pos-cart-items-wrapper {
+    flex: 1;
+    min-height: 220px;
+    max-height: 40vh;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 8px;
+}
+.okj-pos-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    color: #94a3b8;
+    text-align: center;
+}
+.okj-pos-cart-empty p {
+    margin: 0;
+    font-size: 12.5px;
+}
+
+/* Cart Item Cards dynamic styling */
+.okj-pos-cart-item {
+    display: grid;
+    grid-template-columns: 1fr 90px 30px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.okj-pos-cart-item:last-child {
+    border-bottom: none;
+}
+.okj-pos-cart-item-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.okj-pos-cart-item-price {
+    font-size: 11px;
+    color: #64748b;
+    margin: 2px 0 0 0;
+}
+.okj-pos-qty-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 26px;
+}
+.okj-pos-qty-btn {
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: bold;
+    width: 24px;
+    height: 100%;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.okj-pos-qty-val {
+    flex: 1;
+    border: none;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    width: 38px;
+}
+.okj-pos-remove-item {
+    border: none;
+    background: transparent;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.okj-pos-remove-item:hover {
+    color: #b91c1c;
+}
+
+/* POS Summary Area */
+.okj-pos-summary-area {
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+.okj-pos-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: #64748b;
+    font-weight: 500;
+}
+.okj-pos-summary-total {
+    border-top: 1.5px dashed #cbd5e1;
+    margin-top: 8px;
+    padding-top: 8px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1e1b4b;
+}
+.okj-pos-summary-total span#okj-summary-total {
+    color: #4f46e5;
+}
+
+/* Pay Options Pills */
+.okj-pos-payment-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.okj-pos-pay-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+.okj-pos-pay-opt span.dashicons {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+    margin-bottom: 4px;
+}
+.okj-pos-pay-opt.active {
+    border-color: #6366f1;
+    background: #f0fdf4;
+    color: #4f46e5;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.1);
+}
+.okj-pos-checkout-btn {
+    width: 100%;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px;
+}
+
+/* Thermal Struk Layout formatting */
+.okj-pos-thermal-struk {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 11px;
+    color: #000000;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    border-radius: 6px;
+    line-height: 1.4;
+    max-width: 320px;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.okj-struk-header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+.okj-struk-divider {
+    text-align: center;
+    letter-spacing: -1px;
+    margin: 6px 0;
+}
+.okj-struk-meta {
+    width: 100%;
+    font-size: 11px;
+}
+.okj-struk-meta td {
+    border: none !important;
+    padding: 2px 0 !important;
+}
+.okj-struk-items-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.okj-struk-items-table td {
+    border: none !important;
+    padding: 4px 0 !important;
+}
+.okj-struk-totals {
+    width: 100%;
+}
+.okj-struk-totals td {
+    border: none !important;
+    padding: 3px 0 !important;
+}
+.okj-struk-footer {
+    text-align: center;
+    margin-top: 12px;
+}
+

@@ -33,6 +33,18 @@ class OKJ_Admin {
         add_action('wp_ajax_okj_test_waha', [$this, 'ajax_test_waha']);
         add_action('wp_ajax_okj_test_telegram', [$this, 'ajax_test_telegram']);
         add_action('wp_ajax_okj_test_smtp', [$this, 'ajax_test_smtp']);
+        add_action('wp_ajax_okj_pos_get_products', [$this, 'ajax_pos_get_products']);
+        add_action('wp_ajax_okj_pos_checkout', [$this, 'ajax_pos_checkout']);
+        add_action('wp_ajax_okj_pos_send_wa_struk', [$this, 'ajax_pos_send_wa_struk']);
+        add_action('wp_ajax_okj_pos_update_status', [$this, 'ajax_pos_update_status']);
+        
+        // Public self-service order AJAX hooks (guests)
+        add_action('wp_ajax_okj_public_get_products', [$this, 'ajax_public_get_products']);
+        add_action('wp_ajax_nopriv_okj_public_get_products', [$this, 'ajax_public_get_products']);
+        add_action('wp_ajax_okj_public_place_order', [$this, 'ajax_public_place_order']);
+        add_action('wp_ajax_nopriv_okj_public_place_order', [$this, 'ajax_public_place_order']);
+        add_action('wp_ajax_okj_public_check_order_status', [$this, 'ajax_public_check_order_status']);
+        add_action('wp_ajax_nopriv_okj_public_check_order_status', [$this, 'ajax_public_check_order_status']);
     }
 
     public function register_menus() {
@@ -49,6 +61,7 @@ class OKJ_Admin {
         );
 
         add_submenu_page('okj-dashboard', 'Dashboard', 'Dashboard', $cap, 'okj-dashboard', [$this, 'view_dashboard']);
+        add_submenu_page('okj-dashboard', 'Point of Sale (POS)', 'Point of Sale (POS)', $cap, 'okj-pos', [$this, 'view_pos']);
         add_submenu_page('okj-dashboard', 'Daftar Harga Produk', 'Daftar Harga Produk', $cap, 'okj-product-prices', [$this, 'view_product_prices']);
         add_submenu_page('okj-dashboard', 'Pembelian Produk', 'Pembelian Produk', $cap, 'okj-reseller-products', [$this, 'view_reseller_products']);
         add_submenu_page('okj-dashboard', 'Customer', 'Customer', $cap, 'okj-customers', [$this, 'view_customers']);
@@ -1214,4 +1227,565 @@ class OKJ_Admin {
             wp_send_json_error(['message' => 'Gagal mengirim email uji coba. Silakan periksa kembali konfigurasi detail SMTP Anda atau log server.']);
         }
     }
+
+    public function view_pos() {
+        global $wpdb;
+        $customers = $wpdb->get_results("SELECT id, name, phone, whatsapp FROM " . OKJ_DB::get_table('customers') . " ORDER BY name ASC", ARRAY_A);
+        $sellers = $wpdb->get_results("SELECT id, name FROM " . OKJ_DB::get_table('sellers') . " ORDER BY name ASC", ARRAY_A);
+        $categories = $wpdb->get_col("SELECT DISTINCT category FROM " . OKJ_DB::get_table('product_prices') . " WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
+
+        $this->render_template('pos', [
+            'customers' => $customers,
+            'sellers' => $sellers,
+            'categories' => $categories
+        ]);
+    }
+
+    public function ajax_pos_get_products() {
+        if (!current_user_can('okj_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        global $wpdb;
+        $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+        $category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
+
+        $table = OKJ_DB::get_table('product_prices');
+        $query = "SELECT * FROM {$table} WHERE 1=1";
+        $params = [];
+
+        if (!empty($search)) {
+            $query .= " AND name LIKE %s";
+            $params[] = '%' . $wpdb->esc_like($search) . '%';
+        }
+        if (!empty($category)) {
+            $query .= " AND category = %s";
+            $params[] = $category;
+        }
+
+        $query .= " ORDER BY name ASC";
+
+        if (!empty($params)) {
+            $results = $wpdb->get_results($wpdb->prepare($query, $params), ARRAY_A);
+        } else {
+            $results = $wpdb->get_results($query, ARRAY_A);
+        }
+
+        wp_send_json_success($results);
+    }
+
+    public function ajax_pos_checkout() {
+        if (!current_user_can('okj_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        global $wpdb;
+
+        // Support retrieve_only mode for logs thermal receipt printing
+        if (isset($_GET['retrieve_only']) && !empty($_GET['transaction_id'])) {
+            $tx_id = sanitize_text_field($_GET['transaction_id']);
+            $t_transactions = OKJ_DB::get_table('pos_transactions');
+            $t_items = OKJ_DB::get_table('pos_transaction_items');
+
+            $tx = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$t_transactions} WHERE id = %s", $tx_id), ARRAY_A);
+            if (!$tx) {
+                wp_send_json_error(['message' => 'Transaksi tidak ditemukan.']);
+            }
+
+            $items = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$t_items} WHERE transaction_id = %s", $tx_id), ARRAY_A);
+
+            wp_send_json_success([
+                'transaction_id' => $tx['id'],
+                'transaction_no' => $tx['transaction_no'],
+                'customer_name' => $tx['customer_name'],
+                'subtotal' => (float)$tx['subtotal'],
+                'discount' => (float)$tx['discount'],
+                'total' => (float)$tx['total'],
+                'payment_method' => $tx['payment_method'],
+                'created_at' => $tx['created_at'],
+                'items' => $items
+            ]);
+        }
+
+        $payload = json_decode(file_get_contents('php://input'), true);
+
+        if (!$payload || empty($payload['items'])) {
+            wp_send_json_error(['message' => 'Keranjang belanja kosong atau data tidak valid.']);
+        }
+
+        $customer_id = sanitize_text_field($payload['customer_id']);
+        $seller_id = !empty($payload['seller_id']) ? sanitize_text_field($payload['seller_id']) : null;
+        $discount = (float)$payload['discount'];
+        $notes = sanitize_textarea_field($payload['notes']);
+        $payment_method = sanitize_text_field($payload['payment_method']);
+
+        // Fetch customer details
+        $customer_name = 'Guest';
+        $customer_whatsapp = '';
+        $cust = null;
+        if ($customer_id) {
+            $cust = $wpdb->get_row($wpdb->prepare("SELECT name, phone, telegram, whatsapp, email FROM " . OKJ_DB::get_table('customers') . " WHERE id = %s", $customer_id), ARRAY_A);
+            if ($cust) {
+                $customer_name = $cust['name'];
+                $customer_whatsapp = $cust['whatsapp'] ?: $cust['phone'];
+            }
+        }
+
+        // Generate Transaction No.
+        $date_prefix = wp_date('ymd');
+        $t_transactions = OKJ_DB::get_table('pos_transactions');
+        $latest_no = $wpdb->get_var($wpdb->prepare("SELECT transaction_no FROM {$t_transactions} WHERE transaction_no LIKE %s ORDER BY created_at DESC LIMIT 1", 'TR-' . $date_prefix . '-%'));
+        
+        $seq = 1;
+        if ($latest_no) {
+            $parts = explode('-', $latest_no);
+            if (count($parts) === 3) {
+                $seq = (int)$parts[2] + 1;
+            }
+        }
+        $transaction_no = 'TR-' . $date_prefix . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        $transaction_id = wp_generate_uuid4();
+
+        // Calculate Totals & Insert Items
+        $subtotal = 0;
+        $t_pos_items = OKJ_DB::get_table('pos_transaction_items');
+        
+        $item_entries = [];
+        foreach ($payload['items'] as $item) {
+            $p_id = sanitize_text_field($item['id']);
+            $product = $wpdb->get_row($wpdb->prepare("SELECT name, sale_price, duration_days FROM " . OKJ_DB::get_table('product_prices') . " WHERE id = %s", $p_id), ARRAY_A);
+            if (!$product) {
+                wp_send_json_error(['message' => 'Produk tidak ditemukan di master harga.']);
+            }
+
+            $price = (float)$product['sale_price'];
+            $qty = max(1, (int)$item['qty']);
+            $item_subtotal = $price * $qty;
+            $subtotal += $item_subtotal;
+
+            $item_entries[] = [
+                'id' => wp_generate_uuid4(),
+                'transaction_id' => $transaction_id,
+                'product_id' => $p_id,
+                'product_name' => $product['name'],
+                'price' => $price,
+                'qty' => $qty,
+                'duration_days' => (int)$product['duration_days'],
+                'subtotal' => $item_subtotal,
+                'created_at' => current_time('mysql'),
+            ];
+        }
+
+        // Deduct Discount
+        $total = max(0, $subtotal - $discount);
+
+        // Insert Transaction Header
+        $wpdb->insert($t_transactions, [
+            'id' => $transaction_id,
+            'transaction_no' => $transaction_no,
+            'customer_id' => $customer_id ?: null,
+            'customer_name' => $customer_name,
+            'seller_id' => $seller_id ?: null,
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'tax' => 0,
+            'total' => $total,
+            'payment_method' => $payment_method,
+            'payment_status' => 'paid',
+            'notes' => $notes,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+            'updated_by' => get_current_user_id(),
+        ]);
+
+        // Insert Transaction Items
+        foreach ($item_entries as $entry) {
+            $wpdb->insert($t_pos_items, $entry);
+
+            // Automate: Create entry in okj_active_products if product has duration
+            if ($entry['duration_days'] > 0 && $customer_id) {
+                $cust_contact = '';
+                if ($cust) {
+                    $parts = [];
+                    if ($cust['phone']) $parts[] = 'Telp: ' . $cust['phone'];
+                    if ($cust['whatsapp']) $parts[] = 'WA: ' . $cust['whatsapp'];
+                    if ($cust['telegram']) $parts[] = 'TG: ' . $cust['telegram'];
+                    if ($cust['email']) $parts[] = 'Email: ' . $cust['email'];
+                    $cust_contact = implode(' | ', $parts);
+                }
+
+                $active_id = wp_generate_uuid4();
+                $start_date = wp_date('Y-m-d');
+                $expires_at = wp_date('Y-m-d', strtotime($start_date . " +{$entry['duration_days']} days"));
+
+                $wpdb->insert(OKJ_DB::get_table('active_products'), [
+                    'id' => $active_id,
+                    'reseller_product_id' => '', // Direct POS sale, no reseller product ID needed
+                    'product_label' => $entry['product_name'],
+                    'customer_id' => $customer_id,
+                    'customer_name' => $customer_name,
+                    'customer_contact' => $cust_contact,
+                    'start_date' => $start_date,
+                    'duration_days' => $entry['duration_days'],
+                    'expires_at' => $expires_at,
+                    'status' => 'active',
+                    'price' => $entry['price'] * $entry['qty'],
+                    'payment_status' => 'paid',
+                    'notes' => 'Pembelian via POS (' . $transaction_no . ')',
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql'),
+                    'updated_by' => get_current_user_id(),
+                ]);
+
+                // Sync reminders for this active product
+                $saved_row = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $active_id), ARRAY_A);
+                if ($saved_row) {
+                    OKJ_Reseller_Manager::sync_reminders($saved_row);
+                }
+            }
+        }
+
+        OKJ_Reseller_Manager::log('pos_checkout', 'pos_transaction', $transaction_id, "Completed POS transaction: " . $transaction_no . " for customer: " . $customer_name);
+
+        wp_send_json_success([
+            'transaction_id' => $transaction_id,
+            'transaction_no' => $transaction_no,
+            'customer_name' => $customer_name,
+            'customer_whatsapp' => $customer_whatsapp,
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'total' => $total,
+            'payment_method' => $payment_method,
+            'created_at' => wp_date('Y-m-d H:i:s'),
+            'items' => $item_entries
+        ]);
+    }
+
+    public function ajax_pos_send_wa_struk() {
+        if (!current_user_can('okj_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        global $wpdb;
+        $transaction_id = isset($_POST['transaction_id']) ? sanitize_text_field($_POST['transaction_id']) : '';
+        $whatsapp_no = isset($_POST['whatsapp_no']) ? sanitize_text_field($_POST['whatsapp_no']) : '';
+
+        if (empty($transaction_id) || empty($whatsapp_no)) {
+            wp_send_json_error(['message' => 'Parameter tidak lengkap.']);
+        }
+
+        $t_transactions = OKJ_DB::get_table('pos_transactions');
+        $t_pos_items = OKJ_DB::get_table('pos_transaction_items');
+
+        $tx = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$t_transactions} WHERE id = %s", $transaction_id), ARRAY_A);
+        if (!$tx) {
+            wp_send_json_error(['message' => 'Transaksi tidak ditemukan.']);
+        }
+
+        $items = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$t_pos_items} WHERE transaction_id = %s", $transaction_id), ARRAY_A);
+
+        // Build elegant WhatsApp invoice message
+        $settings = get_option('okj_settings_v1', []);
+        $company_name = !empty($settings['pdf_company_name']) ? $settings['pdf_company_name'] : get_bloginfo('name');
+        
+        $msg = "*NOTA PEMBELIAN - {$company_name}*\n";
+        $msg .= "------------------------------------------\n";
+        $msg .= "No. Transaksi: `{$tx['transaction_no']}`\n";
+        $msg .= "Tanggal: " . wp_date('d-m-Y H:i', strtotime($tx['created_at'])) . "\n";
+        $msg .= "Pelanggan: {$tx['customer_name']}\n";
+        $msg .= "------------------------------------------\n";
+        
+        foreach ($items as $item) {
+            $formatted_price = 'Rp ' . number_format($item['price'], 0, ',', '.');
+            $formatted_sub = 'Rp ' . number_format($item['subtotal'], 0, ',', '.');
+            $msg .= "• {$item['product_name']}\n";
+            $msg .= "   {$item['qty']} x {$formatted_price} = *{$formatted_sub}*\n";
+        }
+        
+        $msg .= "------------------------------------------\n";
+        $msg .= "Subtotal: Rp " . number_format($tx['subtotal'], 0, ',', '.') . "\n";
+        if ($tx['discount'] > 0) {
+            $msg .= "Diskon: -Rp " . number_format($tx['discount'], 0, ',', '.') . "\n";
+        }
+        $msg .= "*TOTAL BAYAR: Rp " . number_format($tx['total'], 0, ',', '.') . "*\n";
+        $msg .= "Metode Bayar: " . strtoupper($tx['payment_method']) . "\n";
+        $msg .= "Status: *LUNAS*\n";
+        $msg .= "------------------------------------------\n";
+        $msg .= "Terima kasih atas kunjungan/pembelian Anda! 🙏\n";
+
+        $notifier = new OKJ_Notifier();
+        $res = $notifier->send_waha($whatsapp_no, $msg);
+
+        if ($res['ok']) {
+            wp_send_json_success(['message' => 'Struk berhasil dikirim ke WhatsApp ' . $whatsapp_no]);
+        } else {
+            wp_send_json_error(['message' => 'Gagal mengirim struk via WhatsApp: ' . $res['error']]);
+        }
+    }
+
+    public function ajax_pos_update_status() {
+        if (!current_user_can('okj_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        global $wpdb;
+        $transaction_id = isset($_POST['transaction_id']) ? sanitize_text_field($_POST['transaction_id']) : '';
+        $new_status = isset($_POST['status']) ? sanitize_text_field($_POST['status']) : '';
+
+        if (empty($transaction_id) || empty($new_status)) {
+            wp_send_json_error(['message' => 'Parameter tidak lengkap.']);
+        }
+
+        $t_transactions = OKJ_DB::get_table('pos_transactions');
+        $tx = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$t_transactions} WHERE id = %s", $transaction_id), ARRAY_A);
+        if (!$tx) {
+            wp_send_json_error(['message' => 'Transaksi tidak ditemukan.']);
+        }
+
+        $wpdb->update($t_transactions, [
+            'payment_status' => $new_status,
+            'updated_at' => current_time('mysql'),
+            'updated_by' => get_current_user_id()
+        ], ['id' => $transaction_id]);
+
+        OKJ_Reseller_Manager::log('pos_update_status', 'pos_transaction', $transaction_id, "Updated transaction status for: " . $tx['transaction_no'] . " to: " . $new_status);
+
+        // Notify client if they entered WhatsApp details
+        $status_label = 'Pending / Menunggu';
+        if ($new_status === 'processing') $status_label = 'Sedang Diproses 🧑‍🍳';
+        if ($new_status === 'paid' || $new_status === 'completed') $status_label = 'Selesai & Lunas 🟢';
+
+        if (!empty($tx['customer_id'])) {
+            $cust = $wpdb->get_row($wpdb->prepare("SELECT whatsapp, phone FROM " . OKJ_DB::get_table('customers') . " WHERE id = %s", $tx['customer_id']), ARRAY_A);
+            $wa_no = $cust ? ($cust['whatsapp'] ?: $cust['phone']) : '';
+            if ($wa_no) {
+                $notifier = new OKJ_Notifier();
+                $settings = get_option('okj_settings_v1', []);
+                $company_name = !empty($settings['pdf_company_name']) ? $settings['pdf_company_name'] : get_bloginfo('name');
+                
+                $msg = "*UPDATE PESANAN - {$company_name}*\n";
+                $msg .= "------------------------------------------\n";
+                $msg .= "No. Transaksi: `{$tx['transaction_no']}`\n";
+                $msg .= "Status Terbaru: *{$status_label}*\n";
+                $msg .= "------------------------------------------\n";
+                $msg .= "Terima kasih atas kesabaran Anda! Pesanan Anda sedang kami proses dengan sepenuh hati. 🙏";
+
+                $notifier->send_waha($wa_no, $msg);
+            }
+        }
+
+        wp_send_json_success(['message' => 'Status transaksi berhasil diubah ke ' . $new_status]);
+    }
+
+    public function ajax_public_get_products() {
+        global $wpdb;
+        $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+        $category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
+
+        $table = OKJ_DB::get_table('product_prices');
+        $query = "SELECT * FROM {$table} WHERE 1=1";
+        $params = [];
+
+        if (!empty($search)) {
+            $query .= " AND name LIKE %s";
+            $params[] = '%' . $wpdb->esc_like($search) . '%';
+        }
+        if (!empty($category)) {
+            $query .= " AND category = %s";
+            $params[] = $category;
+        }
+
+        $query .= " ORDER BY name ASC";
+
+        if (!empty($params)) {
+            $results = $wpdb->get_results($wpdb->prepare($query, $params), ARRAY_A);
+        } else {
+            $results = $wpdb->get_results($query, ARRAY_A);
+        }
+
+        wp_send_json_success($results);
+    }
+
+    public function ajax_public_place_order() {
+        global $wpdb;
+        $payload = json_decode(file_get_contents('php://input'), true);
+
+        if (!$payload || empty($payload['items']) || empty($payload['customer_name'])) {
+            wp_send_json_error(['message' => 'Keranjang belanja kosong atau nama belum diisi.']);
+        }
+
+        $name = sanitize_text_field($payload['customer_name']);
+        $whatsapp = sanitize_text_field($payload['customer_whatsapp']);
+        $notes = sanitize_textarea_field($payload['notes']);
+        $payment_method = sanitize_text_field($payload['payment_method']);
+
+        // Search or Create Customer
+        $customer_id = null;
+        if (!empty($whatsapp)) {
+            $cust = $wpdb->get_row($wpdb->prepare("SELECT id FROM " . OKJ_DB::get_table('customers') . " WHERE whatsapp = %s OR phone = %s", $whatsapp, $whatsapp), ARRAY_A);
+            if ($cust) {
+                $customer_id = $cust['id'];
+            } else {
+                $customer_id = wp_generate_uuid4();
+                $wpdb->insert(OKJ_DB::get_table('customers'), [
+                    'id' => $customer_id,
+                    'name' => $name,
+                    'phone' => $whatsapp,
+                    'whatsapp' => $whatsapp,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql'),
+                ]);
+            }
+        }
+
+        // Generate Transaction No.
+        $date_prefix = wp_date('ymd');
+        $t_transactions = OKJ_DB::get_table('pos_transactions');
+        $latest_no = $wpdb->get_var($wpdb->prepare("SELECT transaction_no FROM {$t_transactions} WHERE transaction_no LIKE %s ORDER BY created_at DESC LIMIT 1", 'TR-' . $date_prefix . '-%'));
+        
+        $seq = 1;
+        if ($latest_no) {
+            $parts = explode('-', $latest_no);
+            if (count($parts) === 3) {
+                $seq = (int)$parts[2] + 1;
+            }
+        }
+        $transaction_no = 'TR-' . $date_prefix . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        $transaction_id = wp_generate_uuid4();
+
+        // Calculate Totals & Gather Items
+        $subtotal = 0;
+        $t_pos_items = OKJ_DB::get_table('pos_transaction_items');
+        
+        $item_entries = [];
+        foreach ($payload['items'] as $item) {
+            $p_id = sanitize_text_field($item['id']);
+            $product = $wpdb->get_row($wpdb->prepare("SELECT name, sale_price, duration_days FROM " . OKJ_DB::get_table('product_prices') . " WHERE id = %s", $p_id), ARRAY_A);
+            if (!$product) {
+                wp_send_json_error(['message' => 'Produk tidak ditemukan.']);
+            }
+
+            $price = (float)$product['sale_price'];
+            $qty = max(1, (int)$item['qty']);
+            $item_subtotal = $price * $qty;
+            $subtotal += $item_subtotal;
+
+            $item_entries[] = [
+                'id' => wp_generate_uuid4(),
+                'transaction_id' => $transaction_id,
+                'product_id' => $p_id,
+                'product_name' => $product['name'],
+                'price' => $price,
+                'qty' => $qty,
+                'duration_days' => (int)$product['duration_days'],
+                'subtotal' => $item_subtotal,
+                'created_at' => current_time('mysql'),
+            ];
+        }
+
+        // Insert Transaction Header
+        $wpdb->insert($t_transactions, [
+            'id' => $transaction_id,
+            'transaction_no' => $transaction_no,
+            'customer_id' => $customer_id,
+            'customer_name' => $name,
+            'seller_id' => null,
+            'subtotal' => $subtotal,
+            'discount' => 0,
+            'tax' => 0,
+            'total' => $subtotal,
+            'payment_method' => $payment_method,
+            'payment_status' => 'pending',
+            'notes' => $notes,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql'),
+            'updated_by' => 0,
+        ]);
+
+        // Insert Transaction Items & sync active product tracking
+        foreach ($item_entries as $entry) {
+            $wpdb->insert($t_pos_items, $entry);
+
+            // Automated active product registration (if paid instantly or operator updates later)
+            // But since this is a new public order, we register it as 'pending_payment' active product
+            if ($entry['duration_days'] > 0 && $customer_id) {
+                $cust_contact = 'WA: ' . $whatsapp;
+                $active_id = wp_generate_uuid4();
+                $start_date = wp_date('Y-m-d');
+                $expires_at = wp_date('Y-m-d', strtotime($start_date . " +{$entry['duration_days']} days"));
+
+                $wpdb->insert(OKJ_DB::get_table('active_products'), [
+                    'id' => $active_id,
+                    'reseller_product_id' => '',
+                    'product_label' => $entry['product_name'],
+                    'customer_id' => $customer_id,
+                    'customer_name' => $name,
+                    'customer_contact' => $cust_contact,
+                    'start_date' => $start_date,
+                    'duration_days' => $entry['duration_days'],
+                    'expires_at' => $expires_at,
+                    'status' => 'expired', // Set expired/pending until marked paid
+                    'price' => $entry['price'] * $entry['qty'],
+                    'payment_status' => 'unpaid',
+                    'notes' => 'Pemesanan Mandiri QR POS (' . $transaction_no . ')',
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql'),
+                    'updated_by' => 0,
+                ]);
+            }
+        }
+
+        OKJ_Reseller_Manager::log('pos_public_order', 'pos_transaction', $transaction_id, "New self-service order received: " . $transaction_no . " from customer: " . $name);
+
+        // Notify client via WhatsApp instantly if provided
+        if (!empty($whatsapp)) {
+            $notifier = new OKJ_Notifier();
+            $settings = get_option('okj_settings_v1', []);
+            $company_name = !empty($settings['pdf_company_name']) ? $settings['pdf_company_name'] : get_bloginfo('name');
+            $track_url = home_url('/?okj_order=1&track_order=' . $transaction_id);
+
+            $msg = "*PESANAN DITERIMA - {$company_name}*\n";
+            $msg .= "------------------------------------------\n";
+            $msg .= "No. Transaksi: `{$transaction_no}`\n";
+            $msg .= "Nama Pelanggan: {$name}\n";
+            $msg .= "Total Bayar: Rp " . number_format($subtotal, 0, ',', '.') . "\n";
+            $msg .= "Metode Bayar: " . strtoupper($payment_method) . "\n";
+            $msg .= "Status: *MENUNGGU KONFIRMASI*\n";
+            $msg .= "------------------------------------------\n";
+            $msg .= "Pantau status pesanan secara real-time di sini:\n{$track_url}\n";
+            $msg .= "------------------------------------------\n";
+            $msg .= "Terima kasih atas pemesanan Anda! 🙏";
+
+            $notifier->send_waha($whatsapp, $msg);
+        }
+
+        wp_send_json_success([
+            'transaction_id' => $transaction_id,
+            'transaction_no' => $transaction_no,
+            'customer_name' => $name,
+            'total' => $subtotal,
+            'created_at' => wp_date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function ajax_public_check_order_status() {
+        global $wpdb;
+        $transaction_id = isset($_GET['transaction_id']) ? sanitize_text_field($_GET['transaction_id']) : '';
+
+        if (empty($transaction_id)) {
+            wp_send_json_error(['message' => 'Parameter tidak lengkap.']);
+        }
+
+        $t_transactions = OKJ_DB::get_table('pos_transactions');
+        $tx = $wpdb->get_row($wpdb->prepare("SELECT payment_status FROM {$t_transactions} WHERE id = %s", $transaction_id), ARRAY_A);
+
+        if (!$tx) {
+            wp_send_json_error(['message' => 'Transaksi tidak ditemukan.']);
+        }
+
+        wp_send_json_success([
+            'status' => $tx['payment_status']
+        ]);
+    }
 }
+

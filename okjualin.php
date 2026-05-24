@@ -2,7 +2,7 @@
 /**
  * Plugin Name: OKJualin
  * Description: Manajemen reseller premium: master harga, reseller product, customer, active product tracker, automated reminders (email/telegram/whatsapp WAHA), brandable PDF invoice customizer, JSON backup & ECharts analytics dashboard.
- * Version: 0.0.9
+ * Version: 0.1.0
  * Author: HONET
  * License: GPLv2 or later
  * Text Domain: okjualin
@@ -11,7 +11,7 @@
 if (!defined('ABSPATH')) { exit; }
 
 class OKJ_App {
-    const VERSION = '0.0.9';
+    const VERSION = '0.1.0';
 
     private static $instance = null;
     public static function instance() {
@@ -71,6 +71,9 @@ class OKJ_App {
         if (!wp_next_scheduled('okj_daily_cron')) {
             wp_schedule_event(time(), 'daily', 'okj_daily_cron');
         }
+
+        // Listen to self-service public order requests
+        add_action('template_redirect', [$this, 'handle_public_order_page']);
     }
 
     public function handle_shortlink_redirect() {
@@ -93,6 +96,21 @@ class OKJ_App {
                     wp_redirect($link['destination_url']);
                     exit;
                 }
+            }
+        }
+    }
+
+    public function handle_public_order_page() {
+        if (isset($_GET['okj_order'])) {
+            global $wpdb;
+            
+            // Fetch categories for public catalog
+            $categories = $wpdb->get_col("SELECT DISTINCT category FROM " . OKJ_DB::get_table('product_prices') . " WHERE category IS NOT NULL AND category != '' ORDER BY category ASC");
+            
+            $path = OKJ_PLUGIN_DIR . 'templates/public-order.php';
+            if (file_exists($path)) {
+                include $path;
+                exit;
             }
         }
     }

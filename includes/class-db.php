@@ -54,6 +54,8 @@ class OKJ_DB {
         $t_reminders = self::get_table('active_reminders');
         $t_logs = self::get_table('logs');
         $t_shortlinks = self::get_table('shortlinks');
+        $t_pos_transactions = self::get_table('pos_transactions');
+        $t_pos_items = self::get_table('pos_transaction_items');
 
         $sql_prices = "CREATE TABLE {$t_prices} (
             id CHAR(36) NOT NULL,
@@ -207,6 +209,43 @@ class OKJ_DB {
             KEY entity_id (entity_id)
         ) {$charset};";
 
+        $sql_pos_transactions = "CREATE TABLE {$t_pos_transactions} (
+            id CHAR(36) NOT NULL,
+            transaction_no VARCHAR(50) NOT NULL,
+            customer_id CHAR(36) NULL,
+            customer_name VARCHAR(200) NOT NULL,
+            seller_id CHAR(36) NULL,
+            subtotal BIGINT(20) NOT NULL DEFAULT 0,
+            discount BIGINT(20) NOT NULL DEFAULT 0,
+            tax BIGINT(20) NOT NULL DEFAULT 0,
+            total BIGINT(20) NOT NULL DEFAULT 0,
+            payment_method VARCHAR(50) NOT NULL,
+            payment_status VARCHAR(20) NOT NULL DEFAULT 'paid',
+            notes LONGTEXT NULL,
+            created_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            updated_by BIGINT(20) NOT NULL DEFAULT 0,
+            PRIMARY KEY (id),
+            UNIQUE KEY transaction_no (transaction_no),
+            KEY customer_id (customer_id),
+            KEY seller_id (seller_id)
+        ) {$charset};";
+
+        $sql_pos_items = "CREATE TABLE {$t_pos_items} (
+            id CHAR(36) NOT NULL,
+            transaction_id CHAR(36) NOT NULL,
+            product_id CHAR(36) NOT NULL,
+            product_name VARCHAR(200) NOT NULL,
+            price BIGINT(20) NOT NULL DEFAULT 0,
+            qty INT(11) NOT NULL DEFAULT 1,
+            duration_days INT(11) NOT NULL DEFAULT 0,
+            subtotal BIGINT(20) NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            KEY transaction_id (transaction_id),
+            KEY product_id (product_id)
+        ) {$charset};";
+
         dbDelta($sql_prices);
         dbDelta($sql_shortlinks);
         dbDelta($sql_reseller);
@@ -215,6 +254,8 @@ class OKJ_DB {
         dbDelta($sql_active);
         dbDelta($sql_reminders);
         dbDelta($sql_logs);
+        dbDelta($sql_pos_transactions);
+        dbDelta($sql_pos_items);
 
         // Ensure capabilities and settings are initialized
         self::ensure_caps();
@@ -222,7 +263,7 @@ class OKJ_DB {
 
     public static function uninstall() {
         global $wpdb;
-        $tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs', 'shortlinks'];
+        $tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs', 'shortlinks', 'pos_transactions', 'pos_transaction_items'];
         foreach ($tables as $t) {
             $wpdb->query("DROP TABLE IF EXISTS " . self::get_table($t));
         }
