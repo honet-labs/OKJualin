@@ -2,7 +2,11 @@
 if (!defined('ABSPATH')) { exit; }
 
 global $wpdb;
+
 $t_transactions = OKJ_DB::get_table('pos_transactions');
+if ($wpdb->get_var("SHOW TABLES LIKE '{$t_transactions}'") !== $t_transactions) {
+    OKJ_DB::install();
+}
 
 // Fetch all transactions for Tab 2
 $transactions = $wpdb->get_results("SELECT * FROM {$t_transactions} ORDER BY created_at DESC LIMIT 50", ARRAY_A);

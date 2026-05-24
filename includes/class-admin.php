@@ -1261,6 +1261,12 @@ class OKJ_Admin {
         $category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
 
         $table = OKJ_DB::get_table('product_prices');
+
+        // Self-healing database check: automatically install tables if missing
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$table}'") !== $table) {
+            OKJ_DB::install();
+        }
+
         $query = "SELECT * FROM {$table} WHERE 1=1";
         $params = [];
 
