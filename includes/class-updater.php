@@ -23,12 +23,12 @@ class OKJ_Updater {
     }
 
     public function upgrader_source_selection($source, $remote_source, $upgrader, $hook_extra = null) {
-        if (empty($hook_extra['plugin']) || $hook_extra['plugin'] !== $this->slug) {
+        if (empty($hook_extra['plugin']) || strtolower($hook_extra['plugin']) !== strtolower($this->slug)) {
             return $source;
         }
 
         global $wp_filesystem;
-        $plugin_dir = dirname($this->slug);
+        $plugin_dir = dirname($hook_extra['plugin']);
         $corrected_source = trailingslashit(dirname($source)) . $plugin_dir;
 
         // Move and rename the GitHub extracted folder to match active plugin folder name
