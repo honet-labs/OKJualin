@@ -406,6 +406,16 @@ class OKJ_Admin {
     }
 
     public function view_settings() {
+        if (isset($_GET['check_release'])) {
+            $settings = get_option('okj_settings_v1', []);
+            $repo = !empty($settings['github_repo']) ? trim((string)$settings['github_repo']) : '';
+            if ($repo) {
+                delete_transient('okj_github_latest_release_' . md5($repo));
+            }
+            wp_safe_redirect(admin_url('admin.php?page=okj-settings'));
+            exit;
+        }
+
         $settings = get_option('okj_settings_v1', []);
         $this->render_template('settings', ['settings' => $settings]);
     }

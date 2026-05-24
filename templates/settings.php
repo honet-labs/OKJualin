@@ -1,4 +1,4 @@
-﻿<?php if (!defined('ABSPATH')) { exit; } ?>
+<?php if (!defined('ABSPATH')) { exit; } ?>
 <div class="okj-wrap">
     <div class="okj-header">
         <div>
@@ -381,6 +381,11 @@
     from { opacity: 0; transform: translateY(-12px); }
     to { opacity: 1; transform: translateY(0); }
 }
+@keyframes okjPulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
 </style>
 
 <script>
@@ -531,6 +536,51 @@ jQuery(document).ready(function($) {
                         <div class="okj-form-group okj-mt-1">
                             <label class="okj-label">Personal Access Token GitHub (Gunakan jika repositori private)</label>
                             <input type="password" name="github_token" class="okj-input" value="<?php echo esc_attr(!empty($settings['github_token']) ? $settings['github_token'] : ''); ?>" />
+                        </div>
+
+                        <!-- Status Deteksi Versi Otomatis -->
+                        <?php
+                        $installed_ver = OKJ_App::VERSION;
+                        $latest_gh_ver = OKJ_Updater::get_latest_version_cached();
+                        ?>
+                        <div class="okj-form-group okj-mt-2" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px;">
+                                <span style="font-weight: 700; color: #475569; font-size: 13px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span class="dashicons dashicons-update" style="font-size: 16px; width: 16px; height: 16px; color: #4f46e5;"></span> Status Rilis & Deteksi Versi Otomatis
+                                </span>
+                                <a href="?page=okj-settings&check_release=1" class="okj-btn okj-btn-secondary okj-btn-small" style="padding: 4px 10px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                    <span class="dashicons dashicons-image-rotate" style="font-size: 13px; width: 13px; height: 13px; vertical-align: middle;"></span> Cek Rilis Baru
+                                </a>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #64748b;">Versi Terpasang (Lokal):</span>
+                                    <span style="font-weight: 700; color: #1e293b;">v<?php echo esc_html($installed_ver); ?></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #64748b;">Rilis GitHub Terbaru:</span>
+                                    <?php if ($latest_gh_ver === false): ?>
+                                        <span style="font-weight: 600; color: #ef4444;">Belum dikonfigurasi</span>
+                                    <?php elseif ($latest_gh_ver === 'unknown'): ?>
+                                        <span style="font-weight: 600; color: #eab308; display: inline-flex; align-items: center; gap: 4px;">
+                                            <span class="dashicons dashicons-warning" style="font-size: 16px; width: 16px; height: 16px;"></span> Gagal memuat (Periksa Repositori/Token Anda)
+                                        </span>
+                                    <?php else: ?>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px; font-family: monospace;">v<?php echo esc_html($latest_gh_ver); ?></span>
+                                            <?php if (version_compare($installed_ver, $latest_gh_ver, '<')): ?>
+                                                <span style="font-weight: 700; color: #ef4444; background: #fee2e2; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; animation: okjPulse 2s infinite;">
+                                                    <span class="dashicons dashicons-warning" style="font-size: 14px; width: 14px; height: 14px; color: #ef4444;"></span> Update Tersedia!
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                                                    <span class="dashicons dashicons-yes" style="font-size: 16px; width: 16px; height: 16px; color: #15803d;"></span> Up to Date
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

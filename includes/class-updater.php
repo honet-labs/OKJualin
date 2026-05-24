@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (!defined('ABSPATH')) { exit; }
 
 class OKJ_Updater {
@@ -115,5 +115,52 @@ class OKJ_Updater {
             return $release['assets'][0]['url'];
         }
         return $release['zipball_url'] ?? '';
+    }
+
+    public static function get_latest_version_cached() {
+        $settings = get_option('okj_settings_v1', []);
+        $repo = !empty($settings['github_repo']) ? trim((string)$settings['github_repo']) : '';
+        if (!$repo) {
+            return false;
+        }
+
+        $transient_key = 'okj_github_latest_release_' . md5($repo);
+        $cached = get_transient($transient_key);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        $url = 'https://api.github.com/repos/' . $repo . '/releases/latest';
+        $token = !empty($settings['github_token']) ? trim((string)$settings['github_token']) : '';
+        $args = [
+            'timeout' => 10,
+            'headers' => [
+                'Accept' => 'application/vnd.github.v3+json',
+                'User-Agent' => 'WordPress/' . get_bloginfo('version') . '; ' . home_url(),
+            ],
+        ];
+
+        if ($token) {
+            $args['headers']['Authorization'] = 'token ' . $token;
+        }
+
+        $resp = wp_remote_get($url, $args);
+        if (is_wp_error($resp)) {
+            return 'unknown';
+        }
+
+        $code = (int)wp_remote_retrieve_response_code($resp);
+        if ($code !== 200) {
+            return 'unknown';
+        }
+
+        $body = wp_remote_retrieve_body($resp);
+        $data = json_decode($body, true);
+
+        $version = !empty($data['tag_name']) ? ltrim((string)$data['tag_name'], 'v') : 'unknown';
+        
+        // Cache for 1 hour
+        set_transient($transient_key, $version, HOUR_IN_SECONDS);
+        return $version;
     }
 }
