@@ -56,6 +56,7 @@ class OKJ_DB {
         $t_shortlinks = self::get_table('shortlinks');
         $t_pos_transactions = self::get_table('pos_transactions');
         $t_pos_items = self::get_table('pos_transaction_items');
+        $t_renewals = self::get_table('active_product_renewals');
 
         $sql_prices = "CREATE TABLE {$t_prices} (
             id CHAR(36) NOT NULL,
@@ -247,6 +248,23 @@ class OKJ_DB {
             KEY product_id (product_id)
         ) {$charset};";
 
+        $sql_renewals = "CREATE TABLE {$t_renewals} (
+            id CHAR(36) NOT NULL,
+            active_product_id CHAR(36) NOT NULL,
+            old_expires_at DATE NOT NULL,
+            new_expires_at DATE NOT NULL,
+            duration_days INT(11) NOT NULL DEFAULT 0,
+            price BIGINT(20) NOT NULL DEFAULT 0,
+            payment_status VARCHAR(20) NOT NULL DEFAULT 'paid',
+            payment_attachments LONGTEXT NULL,
+            notes LONGTEXT NULL,
+            renewed_at DATETIME NOT NULL,
+            updated_by BIGINT(20) NOT NULL DEFAULT 0,
+            PRIMARY KEY (id),
+            KEY active_product_id (active_product_id),
+            KEY renewed_at (renewed_at)
+        ) {$charset};";
+
         dbDelta($sql_prices);
         dbDelta($sql_shortlinks);
         dbDelta($sql_reseller);
@@ -257,6 +275,7 @@ class OKJ_DB {
         dbDelta($sql_logs);
         dbDelta($sql_pos_transactions);
         dbDelta($sql_pos_items);
+        dbDelta($sql_renewals);
 
         // Ensure capabilities and settings are initialized
         self::ensure_caps();
@@ -264,7 +283,7 @@ class OKJ_DB {
 
     public static function uninstall() {
         global $wpdb;
-        $tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs', 'shortlinks', 'pos_transactions', 'pos_transaction_items'];
+        $tables = ['product_prices', 'reseller_products', 'customers', 'sellers', 'active_products', 'active_reminders', 'logs', 'shortlinks', 'pos_transactions', 'pos_transaction_items', 'active_product_renewals'];
         foreach ($tables as $t) {
             $wpdb->query("DROP TABLE IF EXISTS " . self::get_table($t));
         }

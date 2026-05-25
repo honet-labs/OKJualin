@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 if (!defined('ABSPATH')) { exit; }
 
 class OKJ_Backup {
@@ -16,6 +16,7 @@ class OKJ_Backup {
             'active_products' => OKJ_DB::get_table('active_products'),
             'active_reminders' => OKJ_DB::get_table('active_reminders'),
             'logs' => OKJ_DB::get_table('logs'),
+            'active_product_renewals' => OKJ_DB::get_table('active_product_renewals'),
         ];
 
         $data = [];
@@ -67,6 +68,7 @@ class OKJ_Backup {
             'active_products' => OKJ_DB::get_table('active_products'),
             'active_reminders' => OKJ_DB::get_table('active_reminders'),
             'logs' => OKJ_DB::get_table('logs'),
+            'active_product_renewals' => OKJ_DB::get_table('active_product_renewals'),
         ];
 
         foreach ($tables as $key => $table) {

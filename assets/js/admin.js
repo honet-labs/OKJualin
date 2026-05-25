@@ -1,4 +1,4 @@
-﻿jQuery(document).ready(function($) {
+jQuery(document).ready(function($) {
     // Initialize Select2 on all searchable select elements
     if ($.fn.select2) {
         $('.okj-select2').select2({
@@ -184,6 +184,12 @@
         if ($(e.target).is('#wrpmActiveNotesModal')) {
             $('#wrpmActiveNotesModal').css('display', 'none');
         }
+        if ($(e.target).is('#okjRenewProductModal')) {
+            $('#okjRenewProductModal').css('display', 'none');
+        }
+        if ($(e.target).is('#okjRenewalHistoryModal')) {
+            $('#okjRenewalHistoryModal').css('display', 'none');
+        }
     });
 
     // ==========================================
@@ -331,5 +337,52 @@
 
     $('.okj-active-notes-close, .okj-active-notes-close-btn').on('click', function() {
         $('#wrpmActiveNotesModal').css('display', 'none');
+    });
+
+    // Renewal Modal logic
+    $('.okj-renew-product-btn').on('click', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var name = $(this).data('name');
+        var expiry = $(this).data('expiry');
+        var price = $(this).data('price');
+        
+        $('#okj_renew_product_id').val(id);
+        $('#okj_renew_product_name').text(name);
+        $('#okj_renew_old_expiry').text(expiry);
+        $('#okj_renew_option_old_expiry').text('Masa Aktif Habis Lama (' + expiry + ')');
+        $('#okj_renew_price').val(price);
+        
+        $('#okjRenewProductModal').css('display', 'flex');
+    });
+
+    $('.okj-renew-modal-close, .okj-renew-modal-close-btn').on('click', function() {
+        $('#okjRenewProductModal').css('display', 'none');
+    });
+
+    // Renewal History Modal logic
+    $('.okj-renewal-history-btn').on('click', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        
+        $('#okj_history_content').html('<div style="text-align:center; padding: 30px;"><span class="okj-spinner" style="display:inline-block; border: 3px solid #e2e8f0; border-top: 3px solid #4f46e5; border-radius: 50%; width: 24px; height: 24px; animation: wrpmSpin 1s linear infinite;"></span><p style="margin-top:10px; color:#64748b;">Memuat riwayat...</p></div>');
+        $('#okjRenewalHistoryModal').css('display', 'flex');
+        
+        $.get(ajaxurl, {
+            action: 'okj_get_renewal_history',
+            active_product_id: id
+        }, function(response) {
+            if (response.success) {
+                $('#okj_history_content').html(response.data.html);
+            } else {
+                $('#okj_history_content').html('<div class="okj-empty-state"><p>' + (response.data.message || 'Gagal memuat data.') + '</p></div>');
+            }
+        }).fail(function() {
+            $('#okj_history_content').html('<div class="okj-empty-state"><p>Terjadi kesalahan jaringan.</p></div>');
+        });
+    });
+
+    $('.okj-history-modal-close, .okj-history-modal-close-btn').on('click', function() {
+        $('#okjRenewalHistoryModal').css('display', 'none');
     });
 });

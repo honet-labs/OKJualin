@@ -17,6 +17,7 @@ class OKJ_Admin {
         add_action('admin_post_okj_delete_reseller_product', [$this, 'delete_reseller_product']);
         add_action('admin_post_okj_save_active_product', [$this, 'save_active_product']);
         add_action('admin_post_okj_delete_active_product', [$this, 'delete_active_product']);
+        add_action('admin_post_okj_renew_active_product', [$this, 'renew_active_product']);
         add_action('admin_post_okj_save_settings', [$this, 'save_settings']);
         add_action('admin_post_okj_backup_data', [$this, 'backup_data']);
         add_action('admin_post_okj_restore_data', [$this, 'restore_data']);
@@ -30,6 +31,7 @@ class OKJ_Admin {
         // AJAX hooks for quick add and connection testing
         add_action('wp_ajax_okj_quick_add_seller', [$this, 'quick_add_seller']);
         add_action('wp_ajax_okj_quick_add_customer', [$this, 'quick_add_customer']);
+        add_action('wp_ajax_okj_get_renewal_history', [$this, 'ajax_get_renewal_history']);
         add_action('wp_ajax_okj_test_waha', [$this, 'ajax_test_waha']);
         add_action('wp_ajax_okj_test_telegram', [$this, 'ajax_test_telegram']);
         add_action('wp_ajax_okj_test_smtp', [$this, 'ajax_test_smtp']);
@@ -843,6 +845,205 @@ class OKJ_Admin {
 
         wp_safe_redirect(admin_url('admin.php?page=okj-active-products'));
         exit;
+    }
+
+    public function renew_active_product() {
+        check_admin_referer('okj_renew_active_product');
+        if (!current_user_can('okj_manage')) wp_die('Forbidden');
+
+        global $wpdb;
+        $active_product_id = sanitize_text_field($_POST['active_product_id']);
+        
+        $ap = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $active_product_id), ARRAY_A);
+        if (!$ap) {
+            wp_die('Layanan Produk Aktif tidak ditemukan.');
+        }
+
+        $duration_days = (int)$_POST['duration_days'];
+        $price = (float)$_POST['price'];
+        $payment_status = sanitize_text_field($_POST['payment_status']);
+        $notes = wp_kses_post($_POST['notes']);
+        $start_from = sanitize_text_field($_POST['start_from']); // 'today' or 'old_expiry'
+
+        $old_expires_at = $ap['expires_at'];
+        
+        // Calculate start date for renewal
+        $today = wp_date('Y-m-d');
+        if ($start_from === 'today') {
+            $base_date = $today;
+        } else {
+            $base_date = $old_expires_at;
+        }
+        
+        $new_expires_at = wp_date('Y-m-d', strtotime($base_date . " +{$duration_days} days"));
+        $new_status = (strtotime($new_expires_at) < strtotime($today)) ? 'expired' : 'active';
+
+        $attachment_url = '';
+        if (!empty($_FILES['payment_attachments']['name'])) {
+            if (!function_exists('media_handle_upload')) {
+                require_once ABSPATH . 'wp-admin/includes/image.php';
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+                require_once ABSPATH . 'wp-admin/includes/media.php';
+            }
+            $attach_id = media_handle_upload('payment_attachments', 0);
+            if (!is_wp_error($attach_id)) {
+                $attachment_url = wp_get_attachment_url($attach_id);
+            }
+        }
+
+        // 1. Insert into active_product_renewals
+        $renewal_id = wp_generate_uuid4();
+        $wpdb->insert(OKJ_DB::get_table('active_product_renewals'), [
+            'id' => $renewal_id,
+            'active_product_id' => $active_product_id,
+            'old_expires_at' => $old_expires_at,
+            'new_expires_at' => $new_expires_at,
+            'duration_days' => $duration_days,
+            'price' => $price,
+            'payment_status' => $payment_status,
+            'payment_attachments' => $attachment_url ?: null,
+            'notes' => $notes,
+            'renewed_at' => current_time('mysql'),
+            'updated_by' => get_current_user_id()
+        ]);
+
+        // 2. Update active_products table
+        $update_data = [
+            'expires_at' => $new_expires_at,
+            'duration_days' => $ap['duration_days'] + $duration_days,
+            'status' => $new_status,
+            'payment_status' => $payment_status,
+            'updated_at' => current_time('mysql'),
+            'updated_by' => get_current_user_id()
+        ];
+        if ($attachment_url) {
+            $update_data['payment_attachments'] = $attachment_url;
+        }
+        $wpdb->update(OKJ_DB::get_table('active_products'), $update_data, ['id' => $active_product_id]);
+
+        // 3. Reset reminder statuses back to pending so they can trigger again for the new expires_at date
+        $wpdb->query($wpdb->prepare(
+            "UPDATE " . OKJ_DB::get_table('active_reminders') . " 
+             SET status = 'pending', sent_via = '', sent_at = NULL, last_error = NULL 
+             WHERE active_product_id = %s",
+            $active_product_id
+        ));
+
+        // 4. Log the action
+        OKJ_Reseller_Manager::log(
+            'renew_product', 
+            'active_product', 
+            $active_product_id, 
+            "Renewed active product {$ap['product_label']} for customer {$ap['customer_name']}. New Expiry: {$new_expires_at} (+{$duration_days} days).",
+            [
+                'renewal_id' => $renewal_id,
+                'price' => $price,
+                'payment_status' => $payment_status,
+                'old_expiry' => $old_expires_at,
+                'new_expiry' => $new_expires_at
+            ]
+        );
+
+        // 5. Sync active reminders
+        $updated_ap = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $active_product_id), ARRAY_A);
+        if ($updated_ap) {
+            OKJ_Reseller_Manager::sync_reminders($updated_ap);
+        }
+
+        wp_safe_redirect(admin_url('admin.php?page=okj-active-products&renewal_success=1'));
+        exit;
+    }
+
+    public function ajax_get_renewal_history() {
+        if (!current_user_can('okj_manage')) {
+            wp_send_json_error(['message' => 'Forbidden']);
+        }
+
+        global $wpdb;
+        $active_product_id = sanitize_text_field($_GET['active_product_id']);
+        
+        $ap = $wpdb->get_row($wpdb->prepare("SELECT product_label, customer_name FROM " . OKJ_DB::get_table('active_products') . " WHERE id = %s", $active_product_id), ARRAY_A);
+        if (!$ap) {
+            wp_send_json_error(['message' => 'Produk tidak ditemukan.']);
+        }
+
+        $renewals = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM " . OKJ_DB::get_table('active_product_renewals') . " 
+             WHERE active_product_id = %s 
+             ORDER BY renewed_at DESC",
+            $active_product_id
+        ), ARRAY_A);
+
+        ob_start();
+        ?>
+        <div style="margin-bottom: 16px;">
+            <p style="margin: 0; font-size: 14px; color: #475569;">
+                Layanan: <strong style="color: #0f172a;"><?php echo esc_html($ap['product_label']); ?></strong><br>
+                Customer: <strong style="color: #0f172a;"><?php echo esc_html($ap['customer_name']); ?></strong>
+            </p>
+        </div>
+        <?php if (empty($renewals)): ?>
+            <div style="text-align: center; padding: 24px; color: #64748b; background: #f8fafc; border-radius: 8px; border: 1px dashed #e2e8f0;">
+                <span class="dashicons dashicons-info" style="font-size: 32px; width: 32px; height: 32px; color: #94a3b8; margin-bottom: 8px;"></span>
+                <p style="margin: 0; font-size: 14px;">Belum ada riwayat perpanjangan (renewal) untuk layanan ini.</p>
+            </div>
+        <?php else: ?>
+            <table style="font-size: 13px; width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                        <th style="padding: 8px 10px; font-weight: 600; color: #475569;">Tgl Perpanjangan</th>
+                        <th style="padding: 8px 10px; font-weight: 600; color: #475569;">Durasi</th>
+                        <th style="padding: 8px 10px; font-weight: 600; color: #475569;">Masa Aktif Baru</th>
+                        <th style="padding: 8px 10px; font-weight: 600; color: #475569;">Biaya</th>
+                        <th style="padding: 8px 10px; font-weight: 600; color: #475569;">Status Bayar</th>
+                        <th style="padding: 8px 10px; font-weight: 600; color: #475569;">Bukti</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($renewals as $r): ?>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 8px 10px;"><?php echo esc_html(wp_date(get_option('date_format') . ' H:i', strtotime($r['renewed_at']))); ?></td>
+                            <td style="padding: 8px 10px;"><strong><?php echo esc_html($r['duration_days']); ?> Hari</strong></td>
+                            <td style="padding: 8px 10px;">
+                                <div style="font-size: 11px; color: #64748b; text-decoration: line-through;"><?php echo esc_html($r['old_expires_at']); ?></div>
+                                <div style="font-weight: 600; color: #16a34a; display: inline-flex; align-items: center; gap: 4px;">
+                                    <span class="dashicons dashicons-arrow-right-alt" style="font-size: 14px; width: 14px; height: 14px; margin-top: 1px;"></span>
+                                    <?php echo esc_html($r['new_expires_at']); ?>
+                                </div>
+                            </td>
+                            <td style="padding: 8px 10px; font-weight: 600; color: #0f172a;">Rp <?php echo number_format_i18n((float)$r['price'], 0); ?></td>
+                            <td style="padding: 8px 10px;">
+                                <?php if ($r['payment_status'] === 'paid'): ?>
+                                    <span class="okj-badge okj-badge-success" style="padding: 2px 6px; font-size: 11px;">Lunas</span>
+                                <?php else: ?>
+                                    <span class="okj-badge okj-badge-warning" style="padding: 2px 6px; font-size: 11px;">Pending</span>
+                                <?php endif; ?>
+                            </td>
+                            <td style="padding: 8px 10px;">
+                                <?php if (!empty($r['payment_attachments'])): ?>
+                                    <a href="<?php echo esc_url($r['payment_attachments']); ?>" target="_blank" style="text-decoration: none; color: #4f46e5; display: inline-flex; align-items: center; font-weight: 600;" title="Lihat Bukti Bayar">
+                                        <span class="dashicons dashicons-image-filter" style="font-size: 16px; width: 16px; height: 16px; margin-right: 2px;"></span> Lihat
+                                    </a>
+                                <?php else: ?>
+                                    <span style="color: #94a3b8;">-</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php if (!empty($r['notes'])): ?>
+                            <tr style="background: #fcfdfe; border-bottom: 1px solid #f1f5f9;">
+                                <td colspan="6" style="padding: 6px 10px; font-size: 11px; color: #64748b; font-style: italic;">
+                                    <strong>Catatan:</strong> <?php echo esc_html($r['notes']); ?>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php
+        endif;
+        $html = ob_get_clean();
+
+        wp_send_json_success(['html' => $html]);
     }
 
     public function save_settings() {

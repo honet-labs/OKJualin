@@ -1,5 +1,10 @@
-﻿<?php if (!defined('ABSPATH')) { exit; } ?>
+<?php if (!defined('ABSPATH')) { exit; } ?>
 <div class="okj-wrap">
+    <?php if (isset($_GET['renewal_success'])): ?>
+        <div class="notice notice-success is-dismissible okj-mb-2" style="margin: 0 0 20px 0; padding: 12px 16px; border-left-color: #10b981; background: #ecfdf5; color: #065f46; border-radius: 8px; border-left-width: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <p style="margin: 0; font-weight: 600;">Layanan berhasil diperpanjang (renewed)! Semua notifikasi reminder diset ulang ke pending.</p>
+        </div>
+    <?php endif; ?>
     <?php if ($action === 'add' || $action === 'edit'): ?>
         <!-- Add / Edit Page -->
         <div class="okj-header">
@@ -208,13 +213,21 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <div class="okj-row-actions">
-                                            <a class="okj-btn-link" href="<?php echo admin_url('admin.php?page=okj-active-products&action=edit&id=' . $r['id']); ?>">
-                                                <span class="dashicons dashicons-edit"></span> Edit
+                                        <div class="okj-row-actions" style="display: flex; flex-direction: column; gap: 4px;">
+                                            <a class="okj-btn-link okj-renew-product-btn" href="#" data-id="<?php echo esc_attr($r['id']); ?>" data-name="<?php echo esc_attr($r['product_label']); ?>" data-expiry="<?php echo esc_attr($r['expires_at']); ?>" data-price="<?php echo esc_attr($r['price']); ?>" style="color: #4f46e5; font-weight: 600;">
+                                                <span class="dashicons dashicons-update" style="font-size: 14px; width: 14px; height: 14px; margin-right: 2px;"></span> Perpanjang
                                             </a>
-                                            <a class="okj-btn-link okj-btn-link-danger" href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=okj_delete_active_product&id=' . $r['id']), 'okj_delete_active_product_' . $r['id']); ?>" onclick="return confirm('Hapus data pelacakan ini? Semua log reminder pending untuk produk ini akan dihapus.');">
-                                                <span class="dashicons dashicons-trash"></span> Hapus
+                                            <a class="okj-btn-link okj-renewal-history-btn" href="#" data-id="<?php echo esc_attr($r['id']); ?>" style="color: #059669; font-weight: 600;">
+                                                <span class="dashicons dashicons-backup" style="font-size: 14px; width: 14px; height: 14px; margin-right: 2px;"></span> Riwayat Renewal
                                             </a>
+                                            <div style="display: flex; gap: 8px; margin-top: 4px;">
+                                                <a class="okj-btn-link" href="<?php echo admin_url('admin.php?page=okj-active-products&action=edit&id=' . $r['id']); ?>">
+                                                    <span class="dashicons dashicons-edit"></span> Edit
+                                                </a>
+                                                <a class="okj-btn-link okj-btn-link-danger" href="<?php echo wp_nonce_url(admin_url('admin-post.php?action=okj_delete_active_product&id=' . $r['id']), 'okj_delete_active_product_' . $r['id']); ?>" onclick="return confirm('Hapus data pelacakan ini? Semua log reminder pending untuk produk ini akan dihapus.');">
+                                                    <span class="dashicons dashicons-trash"></span> Hapus
+                                                </a>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -384,6 +397,95 @@
         </div>
         <div class="okj-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
             <button class="okj-btn okj-btn-secondary okj-active-notes-close-btn" style="cursor: pointer; padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 500;">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Perpanjang Layanan (Renewal) -->
+<div id="okjRenewProductModal" class="okj-modal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="okj-modal-content" style="background-color: #ffffff; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; animation: wrpmFadeIn 0.25s ease-out; margin: auto;">
+        <form method="post" action="<?php echo admin_url('admin-post.php'); ?>" enctype="multipart/form-data">
+            <?php wp_nonce_field('okj_renew_active_product'); ?>
+            <input type="hidden" name="action" value="okj_renew_active_product" />
+            <input type="hidden" id="okj_renew_product_id" name="active_product_id" value="" />
+
+            <div class="okj-modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+                    <span class="dashicons dashicons-update" style="margin-right: 8px; color: #4f46e5; font-size: 20px; width: 20px; height: 20px;"></span>
+                    Perpanjang Layanan (Renewal)
+                </h3>
+                <span class="okj-renew-modal-close" style="color: #94a3b8; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+            </div>
+            
+            <div class="okj-modal-body" style="padding: 20px 24px; color: #334155; font-size: 14px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                    <p style="margin: 0 0 6px 0; color: #64748b; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;">PRODUK & MASA AKTIF</p>
+                    <p style="margin: 0; font-weight: 600; color: #0f172a;" id="okj_renew_product_name">-</p>
+                    <p style="margin: 4px 0 0 0; color: #475569;">Masa Aktif Saat Ini: <strong id="okj_renew_old_expiry">-</strong></p>
+                </div>
+
+                <div class="okj-form-group" style="margin-bottom: 12px;">
+                    <label class="okj-label">Durasi Tambahan (Hari) <span class="okj-required">*</span></label>
+                    <input type="number" name="duration_days" class="okj-input" value="30" min="1" required />
+                </div>
+
+                <div class="okj-form-group" style="margin-bottom: 12px;">
+                    <label class="okj-label">Mulai Perpanjangan Dari <span class="okj-required">*</span></label>
+                    <select name="start_from" class="okj-select">
+                        <option value="old_expiry" id="okj_renew_option_old_expiry">Masa Aktif Habis Lama</option>
+                        <option value="today">Hari Ini (Sejak Diproses)</option>
+                    </select>
+                </div>
+
+                <div class="okj-form-group" style="margin-bottom: 12px;">
+                    <label class="okj-label">Biaya Perpanjangan (IDR) <span class="okj-required">*</span></label>
+                    <input type="number" id="okj_renew_price" name="price" class="okj-input" value="0" min="0" required />
+                </div>
+
+                <div class="okj-form-group" style="margin-bottom: 12px;">
+                    <label class="okj-label">Status Pembayaran <span class="okj-required">*</span></label>
+                    <select name="payment_status" class="okj-select">
+                        <option value="paid">Paid / Lunas</option>
+                        <option value="pending">Pending / Belum Bayar</option>
+                    </select>
+                </div>
+
+                <div class="okj-form-group" style="margin-bottom: 12px;">
+                    <label class="okj-label">Bukti Pembayaran (Gambar, Opsional)</label>
+                    <input type="file" name="payment_attachments" accept="image/*" />
+                </div>
+
+                <div class="okj-form-group" style="margin-bottom: 0;">
+                    <label class="okj-label">Catatan Perpanjangan</label>
+                    <textarea name="notes" class="okj-input" rows="2" placeholder="Catatan tambahan perpanjangan..."></textarea>
+                </div>
+            </div>
+
+            <div class="okj-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="okj-btn okj-btn-secondary okj-renew-modal-close-btn" style="cursor: pointer;">Batal</button>
+                <button type="submit" class="okj-btn okj-btn-primary" style="cursor: pointer;">Proses Perpanjangan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Riwayat Renewal History -->
+<div id="okjRenewalHistoryModal" class="okj-modal" style="display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+    <div class="okj-modal-content" style="background-color: #ffffff; border-radius: 12px; max-width: 700px; width: 95%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border: 1px solid #e2e8f0; animation: wrpmFadeIn 0.25s ease-out; margin: auto;">
+        <div class="okj-modal-header" style="padding: 16px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #0f172a; display: flex; align-items: center;">
+                <span class="dashicons dashicons-backup" style="margin-right: 8px; color: #059669; font-size: 20px; width: 20px; height: 20px;"></span>
+                Riwayat Perpanjangan (Renewal History)
+            </h3>
+            <span class="okj-history-modal-close" style="color: #94a3b8; font-size: 24px; font-weight: bold; cursor: pointer; line-height: 1;">&times;</span>
+        </div>
+        
+        <div class="okj-modal-body" style="padding: 20px 24px; max-height: 450px; overflow-y: auto;" id="okj_history_content">
+            <!-- Loaded dynamically via AJAX -->
+        </div>
+
+        <div class="okj-modal-footer" style="padding: 12px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+            <button class="okj-btn okj-btn-secondary okj-history-modal-close-btn" style="cursor: pointer; padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; font-weight: 500;">Tutup</button>
         </div>
     </div>
 </div>

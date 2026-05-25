@@ -2,7 +2,7 @@
 /**
  * Plugin Name: OKJualin
  * Description: Manajemen reseller premium: master harga, reseller product, customer, active product tracker, automated reminders (email/telegram/whatsapp WAHA), brandable PDF invoice customizer, JSON backup & ECharts analytics dashboard.
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: HONET
  * License: GPLv2 or later
  * Text Domain: okjualin
@@ -11,7 +11,7 @@
 if (!defined('ABSPATH')) { exit; }
 
 class OKJ_App {
-    const VERSION = '0.1.0';
+    const VERSION = '0.1.1';
 
     private static $instance = null;
     public static function instance() {
