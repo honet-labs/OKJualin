@@ -404,6 +404,8 @@
 
 <script>
 jQuery(document).ready(function($) {
+    var safeAjaxUrl = typeof ajaxurl !== 'undefined' ? ajaxurl.replace(/^http:/i, window.location.protocol) : '/wp-admin/admin-ajax.php';
+
     // Tabs Navigation Switcher
     $('.okj-tab-item').on('click', function() {
         var targetTab = $(this).data('tab');
@@ -481,7 +483,7 @@ jQuery(document).ready(function($) {
         $btn.prop('disabled', true).text('Mengirim...');
         $status.css('color', '#4b5563').text('Menghubungkan ke WAHA...');
 
-        $.post(ajaxurl, {
+        $.post(safeAjaxUrl, {
             action: 'okj_test_waha',
             waha_api_url: $('#okj-waha-url').val(),
             waha_api_token: $('#okj-waha-token').val(),
@@ -509,7 +511,7 @@ jQuery(document).ready(function($) {
         $btn.prop('disabled', true).text('Mengirim...');
         $status.css('color', '#4b5563').text('Menghubungkan ke Telegram...');
 
-        $.post(ajaxurl, {
+        $.post(safeAjaxUrl, {
             action: 'okj_test_telegram',
             telegram_bot_token: $('#okj-tele-token').val(),
             telegram_default_chat_id: $('#okj-tele-chatid').val()
@@ -535,7 +537,7 @@ jQuery(document).ready(function($) {
         $btn.prop('disabled', true).text('Mengirim...');
         $status.css('color', '#4b5563').text('Mengirim email uji coba...');
 
-        $.post(ajaxurl, {
+        $.post(safeAjaxUrl, {
             action: 'okj_test_smtp',
             smtp_host: $('#okj-smtp-host').val(),
             smtp_port: $('#okj-smtp-port').val(),

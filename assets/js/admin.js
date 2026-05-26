@@ -1,4 +1,6 @@
 jQuery(document).ready(function($) {
+    var safeAjaxUrl = typeof ajaxurl !== 'undefined' ? ajaxurl.replace(/^http:/i, window.location.protocol) : '/wp-admin/admin-ajax.php';
+
     // Initialize Select2 on all searchable select elements
     if ($.fn.select2) {
         $('.okj-select2').select2({
@@ -228,7 +230,7 @@ jQuery(document).ready(function($) {
         $btn.prop('disabled', true);
         $spinner.show();
 
-        $.post(ajaxurl, {
+        $.post(safeAjaxUrl, {
             action: 'okj_quick_add_seller',
             name: name,
             whatsapp: whatsapp,
@@ -292,7 +294,7 @@ jQuery(document).ready(function($) {
         $btn.prop('disabled', true);
         $spinner.show();
 
-        $.post(ajaxurl, {
+        $.post(safeAjaxUrl, {
             action: 'okj_quick_add_customer',
             name: name,
             whatsapp: whatsapp,
@@ -368,7 +370,7 @@ jQuery(document).ready(function($) {
         $('#okj_history_content').html('<div style="text-align:center; padding: 30px;"><span class="okj-spinner" style="display:inline-block; border: 3px solid #e2e8f0; border-top: 3px solid #4f46e5; border-radius: 50%; width: 24px; height: 24px; animation: wrpmSpin 1s linear infinite;"></span><p style="margin-top:10px; color:#64748b;">Memuat riwayat...</p></div>');
         $('#okjRenewalHistoryModal').css('display', 'flex');
         
-        $.get(ajaxurl, {
+        $.get(safeAjaxUrl, {
             action: 'okj_get_renewal_history',
             active_product_id: id
         }, function(response) {
