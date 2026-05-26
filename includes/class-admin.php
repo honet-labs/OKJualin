@@ -395,17 +395,11 @@ class OKJ_Admin {
                 continue;
             }
 
-            // Future pending (not yet due) → always show
-            if ($r['reminder_date'] > $today) {
-                $rows[] = $r;
-                continue;
-            }
-
-            // Past pending → only show the closest one (smallest offset)
+            // Past/Due pending → only show the closest one (smallest offset)
             if (isset($min_past_pending[$apid]) && $offset === $min_past_pending[$apid]) {
                 $rows[] = $r;
             }
-            // else: superseded past milestone → hide
+            // else: future pending or superseded past milestone → hide
         }
 
         $this->render_template('reminders', ['rows' => $rows]);
